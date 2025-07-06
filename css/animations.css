@@ -1,0 +1,375 @@
+/* ===== WIND TUNNEL ANIMATIONS ===== */
+/* Optimized for smooth performance on Raspberry Pi */
+
+/* Wind Particle Effects */
+@keyframes windFlow {
+    0% { 
+        transform: translateX(-100px) translateY(0px);
+        opacity: 0;
+    }
+    10% { 
+        opacity: 1;
+    }
+    90% { 
+        opacity: 1;
+    }
+    100% { 
+        transform: translateX(100px) translateY(5px);
+        opacity: 0;
+    }
+}
+
+@keyframes windFlowReverse {
+    0% { 
+        transform: translateX(100px) translateY(0px);
+        opacity: 0;
+    }
+    10% { 
+        opacity: 1;
+    }
+    90% { 
+        opacity: 1;
+    }
+    100% { 
+        transform: translateX(-100px) translateY(-5px);
+        opacity: 0;
+    }
+}
+
+/* Turbulence Effect */
+@keyframes turbulence {
+    0%, 100% { 
+        transform: translateY(0px) scale(1);
+    }
+    25% { 
+        transform: translateY(-2px) scale(1.1);
+    }
+    50% { 
+        transform: translateY(2px) scale(0.9);
+    }
+    75% { 
+        transform: translateY(-1px) scale(1.05);
+    }
+}
+
+/* Pressure Wave Animation */
+@keyframes pressureWave {
+    0% { 
+        transform: scaleX(1) scaleY(1);
+        opacity: 0.8;
+    }
+    50% { 
+        transform: scaleX(1.5) scaleY(0.8);
+        opacity: 0.4;
+    }
+    100% { 
+        transform: scaleX(2) scaleY(0.6);
+        opacity: 0;
+    }
+}
+
+/* Data Value Pulse */
+@keyframes dataPulse {
+    0%, 100% { 
+        transform: scale(1);
+        color: #2196F3;
+    }
+    50% { 
+        transform: scale(1.05);
+        color: #4CAF50;
+    }
+}
+
+/* Control Interaction Feedback */
+@keyframes controlFeedback {
+    0% { 
+        transform: scale(1);
+        background-color: #2196F3;
+    }
+    50% { 
+        transform: scale(1.1);
+        background-color: #4CAF50;
+    }
+    100% { 
+        transform: scale(1);
+        background-color: #2196F3;
+    }
+}
+
+/* Loading Animation */
+@keyframes loadingPulse {
+    0% { 
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 1;
+        transform: scale(1.05);
+    }
+    100% { 
+        opacity: 0.3;
+        transform: scale(1);
+    }
+}
+
+/* Streamline Flow */
+@keyframes streamlineFlow {
+    0% { 
+        stroke-dashoffset: 100;
+        opacity: 0.5;
+    }
+    100% { 
+        stroke-dashoffset: 0;
+        opacity: 1;
+    }
+}
+
+/* Button Press Animation */
+@keyframes buttonPress {
+    0% { 
+        transform: scale(1);
+    }
+    50% { 
+        transform: scale(0.95);
+    }
+    100% { 
+        transform: scale(1);
+    }
+}
+
+/* Slider Thumb Glow */
+@keyframes thumbGlow {
+    0%, 100% { 
+        box-shadow: 0 0 5px rgba(33, 150, 243, 0.3);
+    }
+    50% { 
+        box-shadow: 0 0 15px rgba(33, 150, 243, 0.8);
+    }
+}
+
+/* Status Indicator Blink */
+@keyframes statusBlink {
+    0%, 100% { 
+        opacity: 1;
+    }
+    50% { 
+        opacity: 0.3;
+    }
+}
+
+/* Fade In Up Animation */
+@keyframes fadeInUp {
+    0% { 
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Fade In Down Animation */
+@keyframes fadeInDown {
+    0% { 
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    100% { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Shake Animation for Errors */
+@keyframes shake {
+    0%, 100% { 
+        transform: translateX(0);
+    }
+    25% { 
+        transform: translateX(-5px);
+    }
+    75% { 
+        transform: translateX(5px);
+    }
+}
+
+/* Bounce Animation */
+@keyframes bounce {
+    0%, 100% { 
+        transform: translateY(0);
+    }
+    50% { 
+        transform: translateY(-10px);
+    }
+}
+
+/* Rotate Animation */
+@keyframes rotate360 {
+    0% { 
+        transform: rotate(0deg);
+    }
+    100% { 
+        transform: rotate(360deg);
+    }
+}
+
+/* ===== ANIMATION CLASSES ===== */
+
+/* Wind Effect Classes */
+.wind-particle {
+    animation: windFlow 3s linear infinite;
+}
+
+.wind-particle:nth-child(odd) {
+    animation: windFlowReverse 3.5s linear infinite;
+    animation-delay: 0.5s;
+}
+
+.wind-particle:nth-child(even) {
+    animation-delay: 1s;
+}
+
+.turbulent {
+    animation: turbulence 2s ease-in-out infinite;
+}
+
+.pressure-wave {
+    animation: pressureWave 1s ease-out infinite;
+}
+
+/* UI Animation Classes */
+.data-updating {
+    animation: dataPulse 0.5s ease-in-out;
+}
+
+.control-active {
+    animation: controlFeedback 0.3s ease-in-out;
+}
+
+.loading-pulse {
+    animation: loadingPulse 1.5s ease-in-out infinite;
+}
+
+.streamline-animated {
+    animation: streamlineFlow 2s ease-in-out infinite;
+}
+
+.button-pressed {
+    animation: buttonPress 0.2s ease-in-out;
+}
+
+.slider-active {
+    animation: thumbGlow 1s ease-in-out infinite;
+}
+
+.status-active {
+    animation: statusBlink 2s ease-in-out infinite;
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.fade-in-down {
+    animation: fadeInDown 0.5s ease-out;
+}
+
+.error-shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+.bounce-effect {
+    animation: bounce 0.6s ease-in-out;
+}
+
+.spinning {
+    animation: rotate360 1s linear infinite;
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+
+/* Use transform and opacity for better performance */
+.wind-particle,
+.turbulent,
+.pressure-wave {
+    will-change: transform, opacity;
+    transform-origin: center center;
+}
+
+/* Enable hardware acceleration */
+.control-slider::-webkit-slider-thumb,
+.view-btn,
+.data-value {
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+/* Reduce animations on slower devices */
+@media (max-width: 800px) {
+    .wind-particle {
+        animation-duration: 4s;
+    }
+    
+    .turbulent {
+        animation-duration: 3s;
+    }
+    
+    .pressure-wave {
+        animation-duration: 1.5s;
+    }
+}
+
+/* Disable animations for reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .wind-particle,
+    .turbulent,
+    .pressure-wave,
+    .data-updating,
+    .control-active,
+    .loading-pulse,
+    .streamline-animated,
+    .button-pressed,
+    .slider-active,
+    .status-active,
+    .spinning {
+        animation: none !important;
+    }
+}
+
+/* ===== TRANSITION EFFECTS ===== */
+
+/* Smooth transitions for interactive elements */
+.control-slider {
+    transition: all 0.2s ease;
+}
+
+.view-btn {
+    transition: all 0.2s ease;
+}
+
+.data-value {
+    transition: all 0.3s ease;
+}
+
+.control-section {
+    transition: all 0.3s ease;
+}
+
+/* Hover effects for desktop */
+@media (hover: hover) {
+    .view-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+    }
+    
+    .control-slider:hover {
+        transform: scale(1.02);
+    }
+}
+
+/* Focus effects for accessibility */
+.control-slider:focus,
+.view-btn:focus {
+    animation: thumbGlow 0.5s ease-in-out;
+} 

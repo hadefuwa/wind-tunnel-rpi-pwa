@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wind Tunnel Control</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <!-- PWA theme color -->
+    <meta name="theme-color" content="#2196F3">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+    <div id="app">
+        <!-- Main 3D Canvas -->
+        <canvas id="windTunnelCanvas"></canvas>
+        
+        <!-- Loading Screen -->
+        <div id="loadingScreen" class="loading-screen">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Loading Wind Tunnel...</div>
+        </div>
+        
+        <!-- Control Panel -->
+        <div id="controls" class="control-panel">
+            <!-- Wind Speed Control -->
+            <div class="control-section">
+                <h3>Wind Speed</h3>
+                <input type="range" id="windSpeed" min="0" max="100" value="50" class="control-slider">
+                <span id="windSpeedValue" class="control-value">50 MPH</span>
+            </div>
+            
+            <!-- Car Angle Control -->
+            <div class="control-section">
+                <h3>Car Angle</h3>
+                <input type="range" id="carAngle" min="-20" max="20" value="0" class="control-slider">
+                <span id="carAngleValue" class="control-value">0°</span>
+            </div>
+            
+            <!-- Camera View Controls -->
+            <div class="control-section">
+                <h3>Camera View</h3>
+                <div class="view-buttons">
+                    <button id="frontView" class="view-btn active">Front</button>
+                    <button id="sideView" class="view-btn">Side</button>
+                    <button id="topView" class="view-btn">Top</button>
+                </div>
+            </div>
+            
+            <!-- Real-time Data Display -->
+            <div class="data-display">
+                <h3>Aerodynamics</h3>
+                <div class="data-item">
+                    <span class="data-label">Drag:</span>
+                    <span id="dragValue" class="data-value">0.25 N</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">Lift:</span>
+                    <span id="liftValue" class="data-value">-0.12 N</span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">Pressure:</span>
+                    <span id="pressureValue" class="data-value">1.5 kPa</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Status Bar -->
+        <div id="statusBar" class="status-bar">
+            <span id="fpsCounter" class="fps-counter">FPS: 60</span>
+            <span id="connectionStatus" class="connection-status">●</span>
+        </div>
+    </div>
+    
+    <!-- Three.js Library -->
+    <script src="js/three.min.js"></script>
+    
+    <!-- Application Scripts -->
+    <script src="js/aerodynamics.js"></script>
+    <script src="js/windParticles.js"></script>
+    <script src="js/carModel.js"></script>
+    <script src="js/windTunnel.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html> 

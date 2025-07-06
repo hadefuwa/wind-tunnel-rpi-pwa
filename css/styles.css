@@ -1,0 +1,330 @@
+/* ===== WIND TUNNEL PWA STYLES ===== */
+/* Optimized for Raspberry Pi 7" touchscreen (800x480) */
+
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    font-family: 'Arial', sans-serif;
+    background-color: #000;
+    color: #fff;
+    overflow: hidden;
+    /* Prevent touch scrolling and zooming */
+    touch-action: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Main App Container */
+#app {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 3D Canvas */
+#windTunnelCanvas {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #001122 0%, #003366 100%);
+    display: block;
+    cursor: grab;
+}
+
+#windTunnelCanvas:active {
+    cursor: grabbing;
+}
+
+/* Loading Screen */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #333;
+    border-top: 4px solid #2196F3;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-text {
+    color: #fff;
+    font-size: 18px;
+    margin-top: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Control Panel */
+.control-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 2px solid #2196F3;
+    z-index: 100;
+}
+
+.control-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 120px;
+    margin: 0 10px;
+}
+
+.control-section h3 {
+    color: #2196F3;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+/* Range Sliders */
+.control-slider {
+    width: 100px;
+    height: 10px;
+    background: #333;
+    border-radius: 5px;
+    outline: none;
+    -webkit-appearance: none;
+    margin-bottom: 5px;
+    cursor: pointer;
+}
+
+.control-slider::-webkit-slider-thumb {
+    width: 25px;
+    height: 25px;
+    background: #2196F3;
+    cursor: pointer;
+    border-radius: 50%;
+    -webkit-appearance: none;
+    transition: all 0.2s ease;
+}
+
+.control-slider::-webkit-slider-thumb:hover {
+    background: #1976D2;
+    transform: scale(1.1);
+}
+
+.control-slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    background: #2196F3;
+    cursor: pointer;
+    border-radius: 50%;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.control-value {
+    color: #fff;
+    font-size: 11px;
+    font-weight: bold;
+    text-align: center;
+    min-width: 60px;
+}
+
+/* View Buttons */
+.view-buttons {
+    display: flex;
+    gap: 5px;
+}
+
+.view-btn {
+    background: #333;
+    color: #fff;
+    border: 2px solid #555;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    /* Larger touch targets */
+    min-width: 50px;
+    min-height: 40px;
+}
+
+.view-btn:hover {
+    background: #555;
+    border-color: #777;
+}
+
+.view-btn.active {
+    background: #2196F3;
+    border-color: #2196F3;
+}
+
+.view-btn:active {
+    transform: scale(0.95);
+}
+
+/* Data Display */
+.data-display {
+    display: flex;
+    flex-direction: column;
+    min-width: 140px;
+}
+
+.data-display h3 {
+    color: #2196F3;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.data-item {
+    display: flex;
+    justify-content: space-between;
+    margin: 3px 0;
+    font-size: 11px;
+}
+
+.data-label {
+    color: #ccc;
+    font-weight: normal;
+}
+
+.data-value {
+    color: #2196F3;
+    font-weight: bold;
+    text-align: right;
+}
+
+/* Status Bar */
+.status-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 30px;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px;
+    z-index: 50;
+    font-size: 11px;
+}
+
+.fps-counter {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.connection-status {
+    color: #4CAF50;
+    font-size: 16px;
+}
+
+/* Responsive Design for smaller screens */
+@media (max-width: 800px) {
+    .control-panel {
+        padding: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .control-section {
+        min-width: 100px;
+        margin: 5px;
+    }
+    
+    .control-slider {
+        width: 80px;
+    }
+    
+    .view-btn {
+        padding: 6px 10px;
+        min-width: 45px;
+        min-height: 35px;
+    }
+    
+    .data-display {
+        min-width: 120px;
+    }
+}
+
+/* High DPI Display Support */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .control-slider::-webkit-slider-thumb {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .view-btn {
+        min-width: 55px;
+        min-height: 45px;
+    }
+}
+
+/* Focus states for keyboard navigation */
+.control-slider:focus {
+    outline: 2px solid #2196F3;
+    outline-offset: 2px;
+}
+
+.view-btn:focus {
+    outline: 2px solid #2196F3;
+    outline-offset: 2px;
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Hidden class for JavaScript control */
+.hidden {
+    display: none !important;
+}
+
+/* Fade in animation for loaded content */
+.fade-in {
+    opacity: 0;
+    animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+} 
