@@ -24,11 +24,37 @@ html, body {
     user-select: none;
 }
 
-/* Main App Container */
+/* Main App Container - Split Layout */
 #app {
     width: 100%;
     height: 100%;
     position: relative;
+    display: flex;
+    flex-direction: row; /* Changed to row for horizontal split */
+}
+
+/* Main App Section (Left Side) */
+.main-app-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    width: calc(100% - 320px); /* Leave space for dashboard */
+}
+
+/* Aerodynamics Dashboard Sidebar (Right Side) */
+.aero-dashboard-sidebar {
+    width: 320px;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(15px);
+    border-left: 2px solid #2196F3;
+    padding: 20px;
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 200;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
 }
@@ -51,7 +77,7 @@ html, body {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
+    width: calc(100% - 320px); /* Only cover the main app section */
     height: 100%;
     background: rgba(0, 0, 0, 0.9);
     display: flex;
@@ -86,7 +112,7 @@ html, body {
     position: fixed;
     bottom: 0;
     left: 0;
-    width: 100%;
+    width: calc(100% - 320px); /* Adjust for dashboard width */
     background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(10px);
     padding: 15px;
@@ -275,125 +301,88 @@ html, body {
     transform: scale(0.95);
 }
 
-/* Aerodynamics Dashboard Overlay */
-.aero-dashboard-overlay {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    width: 280px;
-    background: rgba(0, 0, 0, 0.9);
-    border: 2px solid #2196F3;
-    border-radius: 12px;
-    box-shadow: 0 0 25px rgba(33, 150, 243, 0.4);
-    z-index: 200;
-    backdrop-filter: blur(10px);
-    transition: all 0.3s ease;
-}
-
-.aero-dashboard-overlay.collapsed .dashboard-content {
-    display: none;
-}
-
+/* Dashboard Header */
 .dashboard-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 15px;
-    background: rgba(33, 150, 243, 0.2);
-    border-radius: 10px 10px 0 0;
-    border-bottom: 1px solid rgba(33, 150, 243, 0.3);
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .dashboard-header h3 {
     color: #2196F3;
-    margin: 0;
-    font-size: 14px;
+    font-size: 18px;
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 1px;
+    margin: 0;
 }
 
-.dashboard-toggle {
-    background: transparent;
-    border: none;
-    color: #2196F3;
-    font-size: 16px;
-    cursor: pointer;
-    padding: 4px;
-    transition: all 0.3s ease;
-}
-
-.dashboard-toggle:hover {
-    color: #fff;
-    transform: scale(1.1);
-}
-
+/* Dashboard Content */
 .dashboard-content {
-    padding: 15px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Dashboard Grid Layout */
 .dashboard-grid {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
 }
 
 .dashboard-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 20px;
+    text-align: center;
     transition: all 0.3s ease;
     position: relative;
 }
 
 .dashboard-item:hover {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.08);
     transform: translateY(-2px);
 }
 
 .dashboard-icon {
     font-size: 24px;
-    margin-bottom: 6px;
+    margin-bottom: 10px;
 }
 
 .dashboard-label {
-    color: #ccc;
-    font-size: 10px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
     font-weight: bold;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 4px;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
 }
 
 .dashboard-value {
     font-size: 32px;
     font-weight: bold;
-    color: #2196F3;
     line-height: 1;
-    margin-bottom: 4px;
-    text-shadow: 0 0 12px rgba(33, 150, 243, 0.6);
+    margin-bottom: 5px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
     transition: all 0.3s ease;
 }
 
 .dashboard-unit {
-    font-size: 13px;
-    color: #999;
-    font-weight: bold;
-    margin-bottom: 10px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: normal;
+    margin-bottom: 15px;
 }
 
-/* Dashboard Progress Bars */
 .dashboard-bar {
     width: 100%;
-    height: 6px;
+    height: 8px;
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
+    border-radius: 4px;
     overflow: hidden;
     position: relative;
 }
@@ -401,41 +390,34 @@ html, body {
 .dashboard-bar-fill {
     height: 100%;
     transition: width 0.3s ease;
-    border-radius: 3px;
+    border-radius: 4px;
 }
 
 .drag-bar {
-    background: linear-gradient(90deg, #ff4444, #ff8888);
-    box-shadow: 0 0 8px rgba(255, 68, 68, 0.5);
+    background: linear-gradient(90deg, #ff4444, #ff6666);
 }
 
 .lift-bar {
-    background: linear-gradient(90deg, #00ff00, #44ff44);
-    box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+    background: linear-gradient(90deg, #44ff44, #66ff66);
 }
 
 .pressure-bar {
-    background: linear-gradient(90deg, #2196F3, #64B5F6);
-    box-shadow: 0 0 8px rgba(33, 150, 243, 0.5);
+    background: linear-gradient(90deg, #4444ff, #6666ff);
 }
 
-/* Special styling for different dashboard items */
+/* Color coding for dashboard values */
 .drag-display .dashboard-value {
-    color: #ff4444;
-    text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+    color: #ff6666;
 }
 
 .lift-display .dashboard-value {
-    color: #00ff00;
-    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+    color: #66ff66;
 }
 
 .pressure-display .dashboard-value {
-    color: #2196F3;
-    text-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
+    color: #6666ff;
 }
 
-/* Value update animations */
 .dashboard-value.updating {
     animation: valueFlash 0.5s ease;
 }
@@ -653,16 +635,14 @@ html, body {
     font-size: 16px;
 }
 
-/* Responsive Design for smaller screens */
+/* Responsive Design */
 @media (max-width: 800px) {
     .control-panel {
         padding: 10px;
-        flex-wrap: wrap;
     }
     
     .control-section {
-        min-width: 100px;
-        margin: 5px;
+        margin: 0 5px;
     }
     
     .control-slider {
@@ -670,15 +650,24 @@ html, body {
     }
     
     .view-btn {
-        padding: 6px 10px;
-        min-width: 45px;
-        min-height: 35px;
+        padding: 8px 12px;
+        font-size: 10px;
     }
     
-    .aero-dashboard-overlay {
-        width: 250px;
-        top: 15px;
-        right: 15px;
+    .aero-dashboard-sidebar {
+        width: 280px;
+    }
+    
+    .main-app-section {
+        width: calc(100% - 280px);
+    }
+    
+    .control-panel {
+        width: calc(100% - 280px);
+    }
+    
+    .loading-screen {
+        width: calc(100% - 280px);
     }
     
     .dashboard-value {
@@ -686,15 +675,25 @@ html, body {
     }
     
     .dashboard-item {
-        padding: 12px;
+        padding: 15px;
     }
 }
 
 @media (max-width: 600px) {
-    .aero-dashboard-overlay {
-        width: 220px;
-        top: 10px;
-        right: 10px;
+    .aero-dashboard-sidebar {
+        width: 250px;
+    }
+    
+    .main-app-section {
+        width: calc(100% - 250px);
+    }
+    
+    .control-panel {
+        width: calc(100% - 250px);
+    }
+    
+    .loading-screen {
+        width: calc(100% - 250px);
     }
     
     .dashboard-value {
@@ -702,24 +701,23 @@ html, body {
     }
     
     .dashboard-grid {
-        gap: 12px;
+        gap: 15px;
     }
     
     .dashboard-item {
-        padding: 10px;
+        padding: 12px;
     }
 }
 
-/* High DPI Display Support */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
     .control-slider::-webkit-slider-thumb {
-        width: 30px;
-        height: 30px;
+        width: 20px;
+        height: 20px;
     }
     
     .view-btn {
-        min-width: 55px;
-        min-height: 45px;
+        padding: 10px 16px;
+        font-size: 12px;
     }
 }
 

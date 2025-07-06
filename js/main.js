@@ -47,9 +47,6 @@ function initializeApp() {
         // Set up data export system
         setupDataExport();
         
-        // Set up dashboard overlay
-        setupDashboardOverlay();
-        
         // Start the animation loop
         startAnimationLoop();
         
@@ -302,44 +299,20 @@ function setupExportControls() {
 
 // Set up test history panel
 function setupTestHistoryPanel() {
-    const toggleBtn = document.getElementById('toggleHistory');
-    const historyPanel = document.getElementById('testHistoryPanel');
+    console.log('Setting up test history panel...');
     
-    // Toggle history panel visibility
-    toggleBtn.addEventListener('click', function() {
-        historyPanel.classList.toggle('collapsed');
-        
-        const isCollapsed = historyPanel.classList.contains('collapsed');
-        this.textContent = isCollapsed ? '◀' : '▼';
-    });
-}
-
-// Set up dashboard overlay
-function setupDashboardOverlay() {
-    console.log('Setting up dashboard overlay...');
+    const toggleHistory = document.getElementById('toggleHistory');
+    const testHistoryPanel = document.getElementById('testHistoryPanel');
     
-    const dashboardToggle = document.getElementById('dashboardToggle');
-    const aeroDashboard = document.getElementById('aeroDashboard');
-    
-    if (dashboardToggle && aeroDashboard) {
-        dashboardToggle.addEventListener('click', function() {
-            aeroDashboard.classList.toggle('collapsed');
+    if (toggleHistory && testHistoryPanel) {
+        toggleHistory.addEventListener('click', function() {
+            testHistoryPanel.classList.toggle('collapsed');
             
-            const isCollapsed = aeroDashboard.classList.contains('collapsed');
+            const isCollapsed = testHistoryPanel.classList.contains('collapsed');
             this.textContent = isCollapsed ? '▲' : '▼';
             
-            // Visual feedback
-            this.style.transform = 'scale(0.9)';
-            setTimeout(() => {
-                this.style.transform = 'scale(1)';
-            }, 150);
-            
-            console.log('Dashboard', isCollapsed ? 'collapsed' : 'expanded');
+            console.log('Test history panel', isCollapsed ? 'collapsed' : 'expanded');
         });
-        
-        console.log('Dashboard overlay controls set up successfully');
-    } else {
-        console.error('Dashboard overlay elements not found');
     }
 }
 
@@ -354,7 +327,7 @@ function showNotification(message, type = 'info') {
     notification.style.cssText = `
         position: fixed;
         top: 50px;
-        right: 20px;
+        right: 350px;
         background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#F44336' : '#2196F3'};
         color: white;
         padding: 12px 20px;
@@ -516,7 +489,7 @@ function showError(message) {
 
 // Handle window resize (important for responsive design)
 window.addEventListener('resize', function() {
-    if (windTunnelApp) {
+    if (windTunnelApp && appState.isLoaded) {
         windTunnelApp.handleResize();
     }
 });
@@ -532,9 +505,9 @@ document.addEventListener('visibilitychange', function() {
     }
 });
 
-// Export functions for other scripts to use
+// Export global functions for external access
 window.WindTunnelMain = {
-    updateDataDisplay: updateDataDisplay,
     appState: appState,
-    windTunnelApp: windTunnelApp
+    updateDataDisplay: updateDataDisplay,
+    showNotification: showNotification
 }; 
