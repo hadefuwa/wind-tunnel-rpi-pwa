@@ -85,6 +85,14 @@ function setupControls() {
         appState.windSpeed = parseInt(this.value);
         windSpeedValue.textContent = appState.windSpeed + ' MPH';
         
+        // Update large wind speed display
+        const windSpeedLarge = document.getElementById('windSpeedLarge');
+        if (windSpeedLarge) {
+            windSpeedLarge.textContent = appState.windSpeed;
+            windSpeedLarge.classList.add('updating');
+            setTimeout(() => windSpeedLarge.classList.remove('updating'), 500);
+        }
+        
         // Update the wind tunnel
         if (windTunnelApp) {
             windTunnelApp.setWindSpeed(appState.windSpeed);
@@ -419,22 +427,42 @@ function updateDataDisplay(dragForce, liftForce, pressure) {
     const liftElement = document.getElementById('liftValue');
     const pressureElement = document.getElementById('pressureValue');
     
+    const dragBar = document.getElementById('dragBar');
+    const liftBar = document.getElementById('liftBar');
+    const pressureBar = document.getElementById('pressureBar');
+    
     if (dragElement) {
-        dragElement.textContent = dragForce.toFixed(2) + ' N';
-        dragElement.classList.add('data-updating');
-        setTimeout(() => dragElement.classList.remove('data-updating'), 500);
+        dragElement.textContent = dragForce.toFixed(2);
+        dragElement.classList.add('updating');
+        setTimeout(() => dragElement.classList.remove('updating'), 500);
     }
     
     if (liftElement) {
-        liftElement.textContent = liftForce.toFixed(2) + ' N';
-        liftElement.classList.add('data-updating');
-        setTimeout(() => liftElement.classList.remove('data-updating'), 500);
+        liftElement.textContent = liftForce.toFixed(2);
+        liftElement.classList.add('updating');
+        setTimeout(() => liftElement.classList.remove('updating'), 500);
     }
     
     if (pressureElement) {
-        pressureElement.textContent = pressure.toFixed(1) + ' kPa';
-        pressureElement.classList.add('data-updating');
-        setTimeout(() => pressureElement.classList.remove('data-updating'), 500);
+        pressureElement.textContent = pressure.toFixed(1);
+        pressureElement.classList.add('updating');
+        setTimeout(() => pressureElement.classList.remove('updating'), 500);
+    }
+    
+    // Update progress bars
+    if (dragBar) {
+        const dragPercent = Math.min(Math.abs(dragForce) / 2.0 * 100, 100); // Scale based on max expected drag
+        dragBar.style.width = dragPercent + '%';
+    }
+    
+    if (liftBar) {
+        const liftPercent = Math.min(Math.abs(liftForce) / 2.0 * 100, 100); // Scale based on max expected lift
+        liftBar.style.width = liftPercent + '%';
+    }
+    
+    if (pressureBar) {
+        const pressurePercent = Math.min(pressure / 5.0 * 100, 100); // Scale based on max expected pressure
+        pressureBar.style.width = pressurePercent + '%';
     }
 }
 

@@ -31,6 +31,12 @@
                 <h3>Wind Speed</h3>
                 <input type="range" id="windSpeed" min="0" max="100" value="50" class="control-slider">
                 <span id="windSpeedValue" class="control-value">50 MPH</span>
+                <!-- Large Wind Speed Display -->
+                <div class="wind-speed-display">
+                    <div class="wind-icon">💨</div>
+                    <div id="windSpeedLarge" class="wind-speed-large">50</div>
+                    <div class="wind-unit">MPH</div>
+                </div>
             </div>
             
             <!-- Car Angle Control -->
@@ -65,18 +71,37 @@
             
             <!-- Real-time Data Display -->
             <div class="data-display">
-                <h3>Aerodynamics</h3>
-                <div class="data-item">
-                    <span class="data-label">Drag:</span>
-                    <span id="dragValue" class="data-value">0.25 N</span>
-                </div>
-                <div class="data-item">
-                    <span class="data-label">Lift:</span>
-                    <span id="liftValue" class="data-value">-0.12 N</span>
-                </div>
-                <div class="data-item">
-                    <span class="data-label">Pressure:</span>
-                    <span id="pressureValue" class="data-value">1.5 kPa</span>
+                <h3>Aerodynamics Dashboard</h3>
+                <div class="dashboard-grid">
+                    <div class="dashboard-item drag-display">
+                        <div class="dashboard-icon">🌬️</div>
+                        <div class="dashboard-label">DRAG FORCE</div>
+                        <div id="dragValue" class="dashboard-value">0.25</div>
+                        <div class="dashboard-unit">N</div>
+                        <div class="dashboard-bar">
+                            <div id="dragBar" class="dashboard-bar-fill drag-bar"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-item lift-display">
+                        <div class="dashboard-icon">⬆️</div>
+                        <div class="dashboard-label">LIFT FORCE</div>
+                        <div id="liftValue" class="dashboard-value">-0.12</div>
+                        <div class="dashboard-unit">N</div>
+                        <div class="dashboard-bar">
+                            <div id="liftBar" class="dashboard-bar-fill lift-bar"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-item pressure-display">
+                        <div class="dashboard-icon">📊</div>
+                        <div class="dashboard-label">PRESSURE</div>
+                        <div id="pressureValue" class="dashboard-value">1.5</div>
+                        <div class="dashboard-unit">kPa</div>
+                        <div class="dashboard-bar">
+                            <div id="pressureBar" class="dashboard-bar-fill pressure-bar"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
             

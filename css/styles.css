@@ -158,6 +158,53 @@ html, body {
     min-width: 60px;
 }
 
+/* Large Wind Speed Display */
+.wind-speed-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.wind-icon {
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+.wind-speed-large {
+    font-size: 36px;
+    font-weight: bold;
+    color: #2196F3;
+    line-height: 1;
+    text-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
+    transition: all 0.3s ease;
+}
+
+.wind-speed-large.updating {
+    animation: windSpeedFlash 0.5s ease;
+}
+
+@keyframes windSpeedFlash {
+    0% { transform: scale(1); }
+    50% { 
+        transform: scale(1.15); 
+        color: #ffffff;
+        text-shadow: 0 0 15px rgba(33, 150, 243, 0.8);
+    }
+    100% { transform: scale(1); }
+}
+
+.wind-unit {
+    font-size: 12px;
+    color: #888;
+    font-weight: bold;
+    margin-top: 2px;
+}
+
 /* Control select dropdown */
 .control-select {
     width: 120px;
@@ -228,38 +275,138 @@ html, body {
     transform: scale(0.95);
 }
 
-/* Data Display */
+/* Data Display Dashboard */
 .data-display {
     display: flex;
     flex-direction: column;
-    min-width: 140px;
+    min-width: 200px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 8px;
+    border: 2px solid #2196F3;
+    box-shadow: 0 0 15px rgba(33, 150, 243, 0.3);
 }
 
 .data-display h3 {
     color: #2196F3;
-    margin-bottom: 8px;
-    font-size: 12px;
+    margin-bottom: 15px;
+    font-size: 14px;
     font-weight: bold;
     text-transform: uppercase;
     text-align: center;
+    letter-spacing: 1px;
 }
 
-.data-item {
+/* Dashboard Grid Layout */
+.dashboard-grid {
     display: flex;
-    justify-content: space-between;
-    margin: 3px 0;
-    font-size: 11px;
+    flex-direction: column;
+    gap: 12px;
 }
 
-.data-label {
+.dashboard-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.dashboard-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.dashboard-icon {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.dashboard-label {
     color: #ccc;
-    font-weight: normal;
+    font-size: 9px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
 }
 
-.data-value {
-    color: #2196F3;
+.dashboard-value {
+    font-size: 28px;
     font-weight: bold;
-    text-align: right;
+    color: #2196F3;
+    line-height: 1;
+    margin-bottom: 2px;
+    text-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
+}
+
+.dashboard-unit {
+    font-size: 12px;
+    color: #888;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+/* Dashboard Progress Bars */
+.dashboard-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+}
+
+.dashboard-bar-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+    border-radius: 3px;
+}
+
+.drag-bar {
+    background: linear-gradient(90deg, #ff4444, #ff8888);
+    box-shadow: 0 0 8px rgba(255, 68, 68, 0.5);
+}
+
+.lift-bar {
+    background: linear-gradient(90deg, #00ff00, #44ff44);
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+}
+
+.pressure-bar {
+    background: linear-gradient(90deg, #2196F3, #64B5F6);
+    box-shadow: 0 0 8px rgba(33, 150, 243, 0.5);
+}
+
+/* Special styling for different dashboard items */
+.drag-display .dashboard-value {
+    color: #ff4444;
+    text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+}
+
+.lift-display .dashboard-value {
+    color: #00ff00;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+.pressure-display .dashboard-value {
+    color: #2196F3;
+    text-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
+}
+
+/* Value update animations */
+.dashboard-value.updating {
+    animation: valueFlash 0.5s ease;
+}
+
+@keyframes valueFlash {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
 }
 
 /* Export Section */
