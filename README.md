@@ -4,6 +4,9 @@ A **Progressive Web App** that simulates a 3D wind tunnel with a car model, anim
 
 ![Wind Tunnel Preview](assets/screenshots/preview.png)
 
+![image](https://github.com/user-attachments/assets/6f6d39de-dfda-4117-99c6-e04d0e5faeb7)
+
+
 ## ✨ Features
 
 - **3D Wind Tunnel Visualization** - Realistic tunnel environment with animated wind effects
