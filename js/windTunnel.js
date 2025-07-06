@@ -166,7 +166,22 @@ class WindTunnelApp {
         
         // Create a simple car model using basic shapes
         this.carModel = new CarModel();
-        this.scene.add(this.carModel.getModel());
+        
+        // Make sure the car model is created properly
+        const carModelGroup = this.carModel.getModel();
+        if (carModelGroup) {
+            this.scene.add(carModelGroup);
+            console.log('Car model added to scene successfully');
+        } else {
+            console.error('Failed to create car model');
+        }
+        
+        // Set the initial car type from app state
+        if (window.WindTunnelMain && window.WindTunnelMain.appState) {
+            const initialCarType = window.WindTunnelMain.appState.carType || 'f1';
+            this.carModel.setCarType(initialCarType);
+            console.log('Initial car type set to:', initialCarType);
+        }
     }
     
     // Update the wind tunnel (called every frame)
@@ -194,8 +209,11 @@ class WindTunnelApp {
     updateAerodynamics() {
         if (!this.aerodynamicsCalculator) return;
         
-        // Calculate forces based on current wind speed and car angle
-        const forces = this.aerodynamicsCalculator.calculateForces(this.windSpeed, this.carAngle);
+        // Get current car type from the car model
+        const currentCarType = this.carModel ? this.carModel.getCurrentCarType() : 'f1';
+        
+        // Calculate forces based on current wind speed, car angle, and car type
+        const forces = this.aerodynamicsCalculator.calculateForces(this.windSpeed, this.carAngle, currentCarType);
         
         // Update the display
         if (window.WindTunnelMain) {

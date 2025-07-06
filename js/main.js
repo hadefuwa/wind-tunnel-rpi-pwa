@@ -47,6 +47,9 @@ function initializeApp() {
         // Set up data export system
         setupDataExport();
         
+        // Set up dashboard overlay
+        setupDashboardOverlay();
+        
         // Start the animation loop
         startAnimationLoop();
         
@@ -311,6 +314,35 @@ function setupTestHistoryPanel() {
     });
 }
 
+// Set up dashboard overlay
+function setupDashboardOverlay() {
+    console.log('Setting up dashboard overlay...');
+    
+    const dashboardToggle = document.getElementById('dashboardToggle');
+    const aeroDashboard = document.getElementById('aeroDashboard');
+    
+    if (dashboardToggle && aeroDashboard) {
+        dashboardToggle.addEventListener('click', function() {
+            aeroDashboard.classList.toggle('collapsed');
+            
+            const isCollapsed = aeroDashboard.classList.contains('collapsed');
+            this.textContent = isCollapsed ? '▲' : '▼';
+            
+            // Visual feedback
+            this.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 150);
+            
+            console.log('Dashboard', isCollapsed ? 'collapsed' : 'expanded');
+        });
+        
+        console.log('Dashboard overlay controls set up successfully');
+    } else {
+        console.error('Dashboard overlay elements not found');
+    }
+}
+
 // Show notification to user
 function showNotification(message, type = 'info') {
     // Create notification element
@@ -449,19 +481,22 @@ function updateDataDisplay(dragForce, liftForce, pressure) {
         setTimeout(() => pressureElement.classList.remove('updating'), 500);
     }
     
-    // Update progress bars
+    // Update progress bars with better scaling
     if (dragBar) {
-        const dragPercent = Math.min(Math.abs(dragForce) / 2.0 * 100, 100); // Scale based on max expected drag
+        // Scale drag: 0-3N = 0-100%
+        const dragPercent = Math.min(Math.max(Math.abs(dragForce) / 3.0 * 100, 5), 100);
         dragBar.style.width = dragPercent + '%';
     }
     
     if (liftBar) {
-        const liftPercent = Math.min(Math.abs(liftForce) / 2.0 * 100, 100); // Scale based on max expected lift
+        // Scale lift: -2 to 2N = 0-100% (absolute value)
+        const liftPercent = Math.min(Math.max(Math.abs(liftForce) / 2.0 * 100, 5), 100);
         liftBar.style.width = liftPercent + '%';
     }
     
     if (pressureBar) {
-        const pressurePercent = Math.min(pressure / 5.0 * 100, 100); // Scale based on max expected pressure
+        // Scale pressure: 0-8kPa = 0-100%
+        const pressurePercent = Math.min(Math.max(pressure / 8.0 * 100, 5), 100);
         pressureBar.style.width = pressurePercent + '%';
     }
 }
@@ -500,5 +535,6 @@ document.addEventListener('visibilitychange', function() {
 // Export functions for other scripts to use
 window.WindTunnelMain = {
     updateDataDisplay: updateDataDisplay,
-    appState: appState
+    appState: appState,
+    windTunnelApp: windTunnelApp
 }; 
