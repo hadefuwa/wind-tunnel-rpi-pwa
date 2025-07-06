@@ -10,10 +10,17 @@ class CarModel {
         this.carGroup = null;
         this.angle = 0;
         this.scale = 1;
-        this.currentCarType = 'sedan';
+        this.currentCarType = 'f1'; // F1 car as default!
         
         // Define different car types with their characteristics
         this.carTypes = {
+            f1: { 
+                drag: 0.28, 
+                lift: -0.8, 
+                name: "F1 Race Car",
+                color: 0xff0000,
+                description: "Formula 1 racing car with maximum downforce"
+            },
             sedan: { 
                 drag: 0.25, 
                 lift: -0.1, 
@@ -80,6 +87,11 @@ class CarModel {
         let bodyGeometry, bodyHeight, bodyWidth;
         
         switch(this.currentCarType) {
+            case 'f1':
+                bodyGeometry = new THREE.BoxGeometry(4.5, 0.4, 1.8); // Very low and long
+                bodyHeight = 0.4;
+                bodyWidth = 1.8;
+                break;
             case 'sedan':
                 bodyGeometry = new THREE.BoxGeometry(4, 1, 1.8);
                 bodyHeight = 1;
@@ -130,16 +142,38 @@ class CarModel {
     createCarRoof() {
         console.log('Creating car roof...');
         
-        // Create roof geometry (smaller box on top)
-        const roofGeometry = new THREE.BoxGeometry(2.5, 0.8, 1.6);
-        const roofMaterial = new THREE.MeshLambertMaterial({ color: 0xff6666 }); // Lighter red
+        const carType = this.carTypes[this.currentCarType];
         
-        const carRoof = new THREE.Mesh(roofGeometry, roofMaterial);
-        carRoof.position.set(-0.3, 0.9, 0);
-        
-        this.carGroup.add(carRoof);
-        
-        console.log('Car roof created');
+        if (this.currentCarType === 'f1') {
+            // F1 car has a cockpit instead of a roof
+            const cockpitGeometry = new THREE.BoxGeometry(1.5, 0.6, 1.2);
+            const cockpitMaterial = new THREE.MeshLambertMaterial({ color: 0x222222 }); // Dark cockpit
+            
+            const cockpit = new THREE.Mesh(cockpitGeometry, cockpitMaterial);
+            cockpit.position.set(0.5, 0.5, 0);
+            this.carGroup.add(cockpit);
+            
+            // Add driver's helmet (small sphere)
+            const helmetGeometry = new THREE.SphereGeometry(0.15, 8, 8);
+            const helmetMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+            
+            const helmet = new THREE.Mesh(helmetGeometry, helmetMaterial);
+            helmet.position.set(0.5, 0.9, 0);
+            this.carGroup.add(helmet);
+            
+            console.log('F1 cockpit and helmet created');
+        } else {
+            // Regular car roof
+            const roofGeometry = new THREE.BoxGeometry(2.5, 0.8, 1.6);
+            const roofMaterial = new THREE.MeshLambertMaterial({ color: carType.color + 0x002200 }); // Slightly different color
+            
+            const carRoof = new THREE.Mesh(roofGeometry, roofMaterial);
+            carRoof.position.set(-0.3, 0.9, 0);
+            
+            this.carGroup.add(carRoof);
+            
+            console.log('Car roof created');
+        }
     }
     
     // Create car wheels
@@ -193,30 +227,68 @@ class CarModel {
     createSpoiler() {
         console.log('Creating spoiler...');
         
-        // Create spoiler geometry (thin box at the back)
-        const spoilerGeometry = new THREE.BoxGeometry(0.8, 0.1, 1.2);
-        const spoilerMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 }); // Dark gray
-        
-        const spoiler = new THREE.Mesh(spoilerGeometry, spoilerMaterial);
-        spoiler.position.set(-2.2, 0.8, 0);
-        
-        this.carGroup.add(spoiler);
-        
-        // Create spoiler supports
-        const supportGeometry = new THREE.BoxGeometry(0.1, 0.4, 0.1);
-        const supportMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
-        
-        // Left support
-        const leftSupport = new THREE.Mesh(supportGeometry, supportMaterial);
-        leftSupport.position.set(-2.2, 0.5, 0.4);
-        this.carGroup.add(leftSupport);
-        
-        // Right support
-        const rightSupport = new THREE.Mesh(supportGeometry, supportMaterial);
-        rightSupport.position.set(-2.2, 0.5, -0.4);
-        this.carGroup.add(rightSupport);
-        
-        console.log('Spoiler created');
+        if (this.currentCarType === 'f1') {
+            // F1 car has front and rear wings
+            
+            // Rear wing (larger and higher)
+            const rearWingGeometry = new THREE.BoxGeometry(1.5, 0.08, 2.0);
+            const wingMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
+            
+            const rearWing = new THREE.Mesh(rearWingGeometry, wingMaterial);
+            rearWing.position.set(-2.5, 1.2, 0);
+            this.carGroup.add(rearWing);
+            
+            // Rear wing supports
+            const supportGeometry = new THREE.BoxGeometry(0.05, 0.8, 0.05);
+            const supportMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
+            
+            // Wing supports
+            for (let i = 0; i < 4; i++) {
+                const support = new THREE.Mesh(supportGeometry, supportMaterial);
+                support.position.set(-2.5, 0.8, -0.75 + i * 0.5);
+                this.carGroup.add(support);
+            }
+            
+            // Front wing
+            const frontWingGeometry = new THREE.BoxGeometry(1.2, 0.06, 2.2);
+            const frontWing = new THREE.Mesh(frontWingGeometry, wingMaterial);
+            frontWing.position.set(2.8, -0.4, 0);
+            this.carGroup.add(frontWing);
+            
+            // Front wing supports
+            const frontSupportGeometry = new THREE.BoxGeometry(0.05, 0.3, 0.05);
+            for (let i = 0; i < 3; i++) {
+                const support = new THREE.Mesh(frontSupportGeometry, supportMaterial);
+                support.position.set(2.8, -0.25, -0.8 + i * 0.8);
+                this.carGroup.add(support);
+            }
+            
+            console.log('F1 wings created');
+        } else {
+            // Regular car spoiler
+            const spoilerGeometry = new THREE.BoxGeometry(0.8, 0.1, 1.2);
+            const spoilerMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
+            
+            const spoiler = new THREE.Mesh(spoilerGeometry, spoilerMaterial);
+            spoiler.position.set(-2.2, 0.8, 0);
+            this.carGroup.add(spoiler);
+            
+            // Create spoiler supports
+            const supportGeometry = new THREE.BoxGeometry(0.1, 0.4, 0.1);
+            const supportMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
+            
+            // Left support
+            const leftSupport = new THREE.Mesh(supportGeometry, supportMaterial);
+            leftSupport.position.set(-2.2, 0.5, 0.4);
+            this.carGroup.add(leftSupport);
+            
+            // Right support
+            const rightSupport = new THREE.Mesh(supportGeometry, supportMaterial);
+            rightSupport.position.set(-2.2, 0.5, -0.4);
+            this.carGroup.add(rightSupport);
+            
+            console.log('Spoiler created');
+        }
     }
     
     // Get the complete car model
@@ -257,10 +329,23 @@ class CarModel {
         const currentAngle = this.angle;
         const currentScale = this.scale;
         const currentPosition = this.getPosition();
+        const parentScene = this.carGroup ? this.carGroup.parent : null;
         
         // Remove old car from scene
         if (this.carGroup && this.carGroup.parent) {
             this.carGroup.parent.remove(this.carGroup);
+        }
+        
+        // Clean up old car
+        if (this.carGroup) {
+            this.carGroup.traverse((object) => {
+                if (object.geometry) {
+                    object.geometry.dispose();
+                }
+                if (object.material) {
+                    object.material.dispose();
+                }
+            });
         }
         
         // Update car type
@@ -269,12 +354,20 @@ class CarModel {
         // Create new car
         this.createCar();
         
+        // Add new car back to scene
+        if (parentScene) {
+            parentScene.add(this.carGroup);
+        }
+        
         // Restore settings
         this.setAngle(currentAngle);
         this.setScale(currentScale);
         this.setPosition(currentPosition.x, currentPosition.y, currentPosition.z);
         
         console.log('Car type switched to:', this.carTypes[carType].name);
+        
+        // Return the new car group so it can be re-added if needed
+        return this.carGroup;
     }
     
     // Get current car type

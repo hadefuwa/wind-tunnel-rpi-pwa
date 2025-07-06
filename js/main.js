@@ -12,7 +12,7 @@ let appState = {
     isLoaded: false,
     windSpeed: 50,
     carAngle: 0,
-    carType: 'sedan',
+    carType: 'f1',
     currentView: 'front',
     fpsCounter: 0,
     lastFpsTime: 0
@@ -194,6 +194,7 @@ function updateCarDescription(carType) {
     const carDescription = document.getElementById('carDescription');
     
     const descriptions = {
+        f1: "Formula 1 racing car with maximum downforce",
         sedan: "Standard passenger car with good aerodynamics",
         sports: "Low-profile car with aggressive aerodynamics",
         suv: "Tall vehicle with higher drag coefficient",
