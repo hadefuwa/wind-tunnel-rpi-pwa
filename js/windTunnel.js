@@ -329,4 +329,20 @@ class WindTunnelApp {
         
         console.log('Wind tunnel disposed');
     }
+    
+    // Get current aerodynamic forces for data export
+    getCurrentForces() {
+        if (!this.aerodynamicsCalculator) {
+            return null;
+        }
+        
+        // Calculate forces based on current wind speed and car angle
+        const forces = this.aerodynamicsCalculator.calculateForces(
+            this.windSpeed,
+            this.carAngle,
+            this.carType
+        );
+        
+        return forces;
+    }
 } 

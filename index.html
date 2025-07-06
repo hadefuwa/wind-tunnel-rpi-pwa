@@ -78,6 +78,36 @@
                     <span id="pressureValue" class="data-value">1.5 kPa</span>
                 </div>
             </div>
+            
+            <!-- Data Export Controls -->
+            <div class="export-section">
+                <h3>Data Export</h3>
+                <div class="export-buttons">
+                    <button id="recordTest" class="export-btn">Record Test</button>
+                    <button id="exportCSV" class="export-btn">Export CSV</button>
+                    <button id="exportJSON" class="export-btn">Export JSON</button>
+                    <button id="clearData" class="export-btn clear-btn">Clear</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Test History Panel -->
+        <div id="testHistoryPanel" class="test-history-panel">
+            <div class="history-header">
+                <h3>Test History</h3>
+                <button id="toggleHistory" class="toggle-btn">▼</button>
+            </div>
+            <div id="testHistoryContent" class="history-content">
+                <div id="testStats" class="test-stats">
+                    <div class="stat-item">Tests: 0</div>
+                    <div class="stat-item">Avg Drag: 0N</div>
+                    <div class="stat-item">Avg Lift: 0N</div>
+                    <div class="stat-item">Session: 0min</div>
+                </div>
+                <div id="testHistory" class="test-history">
+                    <div class="no-tests">No tests recorded yet</div>
+                </div>
+            </div>
         </div>
         
         <!-- Status Bar -->
@@ -95,6 +125,7 @@
     <script src="js/windParticles.js"></script>
     <script src="js/carModel.js"></script>
     <script src="js/windTunnel.js"></script>
+    <script src="js/dataExport.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html> 

@@ -158,9 +158,9 @@ function exportData() {
 - [x] Car selection interface added
 - [x] Physics calculations updated for car types
 - [x] Visual feedback for car selection
-**Phase 3:** ⏳ Pending
-**Phase 4:** ⏳ Pending
-**Phase 5:** ⏳ Pending
+**Phase 3:** ❌ Skipped (Audio not needed for Pi setup)
+**Phase 4:** 🔄 In Progress (Data export & performance)  
+**Phase 5:** ❌ Skipped (Mobile optimization not needed for HDMI tablets)
 
 ---
 

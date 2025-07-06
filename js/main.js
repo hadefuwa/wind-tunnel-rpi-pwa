@@ -5,6 +5,7 @@
 let windTunnelApp = null;
 let canvas = null;
 let loadingScreen = null;
+let dataExportSystem = null;
 
 // Application state
 let appState = {
@@ -42,6 +43,9 @@ function initializeApp() {
         
         // Set up PWA features
         setupPWA();
+        
+        // Set up data export system
+        setupDataExport();
         
         // Start the animation loop
         startAnimationLoop();
@@ -201,6 +205,147 @@ function updateCarDescription(carType) {
         carDescription.classList.add('description-updating');
         setTimeout(() => carDescription.classList.remove('description-updating'), 500);
     }
+}
+
+// Set up data export system
+function setupDataExport() {
+    console.log('Setting up data export system...');
+    
+    // Initialize the data export system
+    dataExportSystem = new DataExportSystem();
+    
+    // Set up export button event listeners
+    setupExportControls();
+    
+    // Set up test history panel
+    setupTestHistoryPanel();
+}
+
+// Set up export control buttons
+function setupExportControls() {
+    const recordTestBtn = document.getElementById('recordTest');
+    const exportCSVBtn = document.getElementById('exportCSV');
+    const exportJSONBtn = document.getElementById('exportJSON');
+    const clearDataBtn = document.getElementById('clearData');
+    
+    // Record Test button
+    recordTestBtn.addEventListener('click', function() {
+        if (dataExportSystem && windTunnelApp) {
+            // Get current aerodynamic data
+            const currentForces = windTunnelApp.getCurrentForces();
+            
+            if (currentForces) {
+                const testResult = dataExportSystem.recordTest(
+                    appState.windSpeed,
+                    appState.carAngle,
+                    appState.carType,
+                    currentForces
+                );
+                
+                // Visual feedback
+                this.classList.add('button-pressed');
+                setTimeout(() => this.classList.remove('button-pressed'), 200);
+                
+                // Show notification
+                showNotification(`Test #${testResult.id} recorded!`, 'success');
+            } else {
+                showNotification('Unable to record test - no data available', 'error');
+            }
+        }
+    });
+    
+    // Export CSV button
+    exportCSVBtn.addEventListener('click', function() {
+        if (dataExportSystem) {
+            dataExportSystem.exportToCSV();
+            
+            // Visual feedback
+            this.classList.add('button-pressed');
+            setTimeout(() => this.classList.remove('button-pressed'), 200);
+        }
+    });
+    
+    // Export JSON button
+    exportJSONBtn.addEventListener('click', function() {
+        if (dataExportSystem) {
+            dataExportSystem.exportToJSON();
+            
+            // Visual feedback
+            this.classList.add('button-pressed');
+            setTimeout(() => this.classList.remove('button-pressed'), 200);
+        }
+    });
+    
+    // Clear Data button
+    clearDataBtn.addEventListener('click', function() {
+        if (dataExportSystem) {
+            dataExportSystem.clearHistory();
+            
+            // Visual feedback
+            this.classList.add('button-pressed');
+            setTimeout(() => this.classList.remove('button-pressed'), 200);
+        }
+    });
+}
+
+// Set up test history panel
+function setupTestHistoryPanel() {
+    const toggleBtn = document.getElementById('toggleHistory');
+    const historyPanel = document.getElementById('testHistoryPanel');
+    
+    // Toggle history panel visibility
+    toggleBtn.addEventListener('click', function() {
+        historyPanel.classList.toggle('collapsed');
+        
+        const isCollapsed = historyPanel.classList.contains('collapsed');
+        this.textContent = isCollapsed ? '◀' : '▼';
+    });
+}
+
+// Show notification to user
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    
+    // Style the notification
+    notification.style.cssText = `
+        position: fixed;
+        top: 50px;
+        right: 20px;
+        background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#F44336' : '#2196F3'};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        z-index: 1000;
+        opacity: 0;
+        transform: translateX(100px);
+        transition: all 0.3s ease;
+    `;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.style.opacity = '1';
+        notification.style.transform = 'translateX(0)';
+    }, 10);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100px)';
+        
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
 }
 
 // Set up Progressive Web App features
