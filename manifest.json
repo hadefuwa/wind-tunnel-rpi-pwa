@@ -29,9 +29,9 @@
       "purpose": "any maskable"
     },
     {
-      "src": "assets/icons/icon-144.png",
+      "src": "assets/icons/icon-144.svg",
       "sizes": "144x144",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
@@ -41,9 +41,9 @@
       "purpose": "any maskable"
     },
     {
-      "src": "assets/icons/icon-192.png",
+      "src": "assets/icons/icon-192.svg",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
@@ -82,9 +82,9 @@
       "url": "/",
       "icons": [
         {
-          "src": "assets/icons/icon-192.png",
+          "src": "assets/icons/icon-192.svg",
           "sizes": "192x192",
-          "type": "image/png"
+          "type": "image/svg+xml"
         }
       ]
     }

@@ -215,6 +215,21 @@ class WindTunnelApp {
         console.log('Car angle set to:', angle, '°');
     }
     
+    // Set car type
+    setCarType(carType) {
+        if (this.carModel) {
+            this.carModel.setCarType(carType);
+            
+            // Update aerodynamics calculator with new car characteristics
+            if (this.aerodynamicsCalculator) {
+                const carCharacteristics = this.carModel.getCarCharacteristics();
+                this.aerodynamicsCalculator.updateCarCharacteristics(carCharacteristics);
+            }
+            
+            console.log('Car type changed to:', carType);
+        }
+    }
+    
     // Set camera view
     setCameraView(viewName) {
         console.log('Setting camera view to:', viewName);

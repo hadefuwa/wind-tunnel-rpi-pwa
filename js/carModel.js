@@ -10,6 +10,39 @@ class CarModel {
         this.carGroup = null;
         this.angle = 0;
         this.scale = 1;
+        this.currentCarType = 'sedan';
+        
+        // Define different car types with their characteristics
+        this.carTypes = {
+            sedan: { 
+                drag: 0.25, 
+                lift: -0.1, 
+                name: "Sedan",
+                color: 0xff4444,
+                description: "Standard passenger car with good aerodynamics"
+            },
+            sports: { 
+                drag: 0.35, 
+                lift: -0.3, 
+                name: "Sports Car",
+                color: 0xff6600,
+                description: "Low-profile car with aggressive aerodynamics"
+            },
+            suv: { 
+                drag: 0.45, 
+                lift: 0.1, 
+                name: "SUV",
+                color: 0x0066ff,
+                description: "Tall vehicle with higher drag coefficient"
+            },
+            truck: { 
+                drag: 0.55, 
+                lift: 0.2, 
+                name: "Truck",
+                color: 0x00aa00,
+                description: "Large vehicle with poor aerodynamics"
+            }
+        };
         
         // Create the car model
         this.createCar();
@@ -24,7 +57,7 @@ class CarModel {
         // Create a group to hold all car parts
         this.carGroup = new THREE.Group();
         
-        // Create different parts of the car
+        // Create different parts of the car based on type
         this.createCarBody();
         this.createCarRoof();
         this.createWheels();
@@ -41,9 +74,39 @@ class CarModel {
     createCarBody() {
         console.log('Creating car body...');
         
-        // Create main body geometry (like a stretched box)
-        const bodyGeometry = new THREE.BoxGeometry(4, 1, 1.8);
-        const bodyMaterial = new THREE.MeshLambertMaterial({ color: 0xff4444 }); // Red color
+        const carType = this.carTypes[this.currentCarType];
+        
+        // Create main body geometry based on car type
+        let bodyGeometry, bodyHeight, bodyWidth;
+        
+        switch(this.currentCarType) {
+            case 'sedan':
+                bodyGeometry = new THREE.BoxGeometry(4, 1, 1.8);
+                bodyHeight = 1;
+                bodyWidth = 1.8;
+                break;
+            case 'sports':
+                bodyGeometry = new THREE.BoxGeometry(4.2, 0.8, 1.6); // Lower and narrower
+                bodyHeight = 0.8;
+                bodyWidth = 1.6;
+                break;
+            case 'suv':
+                bodyGeometry = new THREE.BoxGeometry(4, 1.4, 2.0); // Taller and wider
+                bodyHeight = 1.4;
+                bodyWidth = 2.0;
+                break;
+            case 'truck':
+                bodyGeometry = new THREE.BoxGeometry(3.5, 1.6, 2.2); // Shorter but taller
+                bodyHeight = 1.6;
+                bodyWidth = 2.2;
+                break;
+            default:
+                bodyGeometry = new THREE.BoxGeometry(4, 1, 1.8);
+                bodyHeight = 1;
+                bodyWidth = 1.8;
+        }
+        
+        const bodyMaterial = new THREE.MeshLambertMaterial({ color: carType.color });
         
         const carBody = new THREE.Mesh(bodyGeometry, bodyMaterial);
         carBody.position.set(0, 0, 0);
@@ -52,15 +115,15 @@ class CarModel {
         this.carGroup.add(carBody);
         
         // Create front bumper
-        const bumperGeometry = new THREE.BoxGeometry(0.3, 0.5, 1.6);
+        const bumperGeometry = new THREE.BoxGeometry(0.3, bodyHeight * 0.5, bodyWidth * 0.9);
         const bumperMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 }); // Dark gray
         
         const frontBumper = new THREE.Mesh(bumperGeometry, bumperMaterial);
-        frontBumper.position.set(2.2, -0.2, 0);
+        frontBumper.position.set(2.2, -bodyHeight * 0.2, 0);
         
         this.carGroup.add(frontBumper);
         
-        console.log('Car body created');
+        console.log('Car body created for:', carType.name);
     }
     
     // Create the car roof
@@ -179,6 +242,54 @@ class CarModel {
     // Get current angle
     getAngle() {
         return this.angle;
+    }
+    
+    // Switch to a different car type
+    setCarType(carType) {
+        if (!this.carTypes[carType]) {
+            console.error('Invalid car type:', carType);
+            return;
+        }
+        
+        console.log('Switching to car type:', carType);
+        
+        // Store current settings
+        const currentAngle = this.angle;
+        const currentScale = this.scale;
+        const currentPosition = this.getPosition();
+        
+        // Remove old car from scene
+        if (this.carGroup && this.carGroup.parent) {
+            this.carGroup.parent.remove(this.carGroup);
+        }
+        
+        // Update car type
+        this.currentCarType = carType;
+        
+        // Create new car
+        this.createCar();
+        
+        // Restore settings
+        this.setAngle(currentAngle);
+        this.setScale(currentScale);
+        this.setPosition(currentPosition.x, currentPosition.y, currentPosition.z);
+        
+        console.log('Car type switched to:', this.carTypes[carType].name);
+    }
+    
+    // Get current car type
+    getCurrentCarType() {
+        return this.currentCarType;
+    }
+    
+    // Get all available car types
+    getAvailableCarTypes() {
+        return Object.keys(this.carTypes);
+    }
+    
+    // Get characteristics of current car type
+    getCarCharacteristics() {
+        return this.carTypes[this.currentCarType];
     }
     
     // Set car scale

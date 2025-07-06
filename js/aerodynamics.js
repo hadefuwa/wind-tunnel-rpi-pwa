@@ -24,6 +24,18 @@ class AerodynamicsCalculator {
         console.log('Aerodynamics Calculator initialized');
     }
     
+    // Update car characteristics based on car type
+    updateCarCharacteristics(carCharacteristics) {
+        if (carCharacteristics) {
+            this.baseDragCoefficient = carCharacteristics.drag;
+            this.baseLiftCoefficient = carCharacteristics.lift;
+            
+            console.log('Updated car characteristics:', carCharacteristics.name);
+            console.log('Drag coefficient:', this.baseDragCoefficient);
+            console.log('Lift coefficient:', this.baseLiftCoefficient);
+        }
+    }
+    
     // Main function to calculate all forces
     calculateForces(windSpeedMPH, carAngleDegrees) {
         // Convert wind speed from MPH to m/s

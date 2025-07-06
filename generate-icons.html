@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .icon-preview { display: inline-block; margin: 10px; text-align: center; }
+        .icon-preview img { border: 1px solid #ccc; }
+        button { padding: 10px 20px; margin: 10px; background: #2196F3; color: white; border: none; cursor: pointer; }
+        button:hover { background: #1976D2; }
+        #status { margin: 20px 0; padding: 10px; background: #f0f0f0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🎨 Wind Tunnel PWA Icon Generator</h1>
+    <p>This tool will generate all required PNG icons from the SVG source.</p>
+    
+    <div id="status">Ready to generate icons...</div>
+    
+    <button onclick="generateAllIcons()">Generate All Icons</button>
+    <button onclick="downloadAllIcons()">Download All Icons</button>
+    
+    <h2>Icon Previews</h2>
+    <div id="previews"></div>
+    
+    <script>
+        const iconSizes = [72, 96, 128, 144, 152, 192, 384, 512];
+        const generatedIcons = {};
+        
+        const svgSource = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2196F3"/>
+      <stop offset="100%" style="stop-color:#1976D2"/>
+    </linearGradient>
+    <linearGradient id="car" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF5722"/>
+      <stop offset="100%" style="stop-color:#D32F2F"/>
+    </linearGradient>
+  </defs>
+  
+  <rect width="192" height="192" fill="url(#bg)" rx="20"/>
+  
+  <rect x="40" y="100" width="80" height="25" fill="url(#car)" rx="5"/>
+  <rect x="50" y="90" width="60" height="15" fill="url(#car)" rx="8"/>
+  
+  <circle cx="55" cy="130" r="8" fill="#333"/>
+  <circle cx="105" cy="130" r="8" fill="#333"/>
+  
+  <line x1="20" y1="95" x2="35" y2="95" stroke="#00E676" stroke-width="3" stroke-linecap="round"/>
+  <line x1="20" y1="105" x2="35" y2="105" stroke="#00E676" stroke-width="3" stroke-linecap="round"/>
+  <line x1="20" y1="115" x2="35" y2="115" stroke="#00E676" stroke-width="3" stroke-linecap="round"/>
+  <line x1="20" y1="125" x2="35" y2="125" stroke="#00E676" stroke-width="3" stroke-linecap="round"/>
+  
+  <path d="M30 95 L35 95 L32 92 M35 95 L32 98" stroke="#00E676" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M30 105 L35 105 L32 102 M35 105 L32 108" stroke="#00E676" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M30 115 L35 115 L32 112 M35 115 L32 118" stroke="#00E676" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M30 125 L35 125 L32 122 M35 125 L32 128" stroke="#00E676" stroke-width="2" fill="none" stroke-linecap="round"/>
+  
+  <rect x="10" y="80" width="172" height="60" fill="none" stroke="#FFF" stroke-width="2" rx="10" opacity="0.3"/>
+  
+  <text x="96" y="50" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Wind Tunnel</text>
+  <text x="96" y="70" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12">PWA</text>
+</svg>`;
+        
+        async function generateAllIcons() {
+            const status = document.getElementById('status');
+            const previews = document.getElementById('previews');
+            
+            status.textContent = 'Generating icons...';
+            previews.innerHTML = '';
+            
+            for (const size of iconSizes) {
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = size;
+                    canvas.height = size;
+                    const ctx = canvas.getContext('2d');
+                    
+                    const img = new Image();
+                    const svgBlob = new Blob([svgSource], { type: 'image/svg+xml' });
+                    const url = URL.createObjectURL(svgBlob);
+                    
+                    await new Promise((resolve, reject) => {
+                        img.onload = () => {
+                            ctx.drawImage(img, 0, 0, size, size);
+                            URL.revokeObjectURL(url);
+                            resolve();
+                        };
+                        img.onerror = reject;
+                        img.src = url;
+                    });
+                    
+                    const pngDataUrl = canvas.toDataURL('image/png');
+                    generatedIcons[size] = pngDataUrl;
+                    
+                    // Create preview
+                    const preview = document.createElement('div');
+                    preview.className = 'icon-preview';
+                    preview.innerHTML = `
+                        <img src="${pngDataUrl}" alt="${size}x${size}" style="width: ${Math.min(size, 64)}px; height: ${Math.min(size, 64)}px;">
+                        <br>
+                        <strong>${size}x${size}</strong>
+                        <br>
+                        <button onclick="downloadIcon(${size})">Download</button>
+                    `;
+                    previews.appendChild(preview);
+                    
+                    status.textContent = `Generated ${Object.keys(generatedIcons).length}/${iconSizes.length} icons...`;
+                } catch (error) {
+                    console.error(`Error generating ${size}x${size} icon:`, error);
+                }
+            }
+            
+            status.textContent = `✅ Generated ${Object.keys(generatedIcons).length} icons successfully!`;
+        }
+        
+        function downloadIcon(size) {
+            const dataUrl = generatedIcons[size];
+            if (dataUrl) {
+                const link = document.createElement('a');
+                link.download = `icon-${size}.png`;
+                link.href = dataUrl;
+                link.click();
+            }
+        }
+        
+        function downloadAllIcons() {
+            iconSizes.forEach(size => {
+                if (generatedIcons[size]) {
+                    setTimeout(() => downloadIcon(size), size * 10); // Stagger downloads
+                }
+            });
+        }
+        
+        // Auto-generate icons on page load
+        window.addEventListener('load', () => {
+            setTimeout(generateAllIcons, 1000);
+        });
+    </script>
+</body>
+</html> 

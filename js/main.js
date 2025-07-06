@@ -11,6 +11,7 @@ let appState = {
     isLoaded: false,
     windSpeed: 50,
     carAngle: 0,
+    carType: 'sedan',
     currentView: 'front',
     fpsCounter: 0,
     lastFpsTime: 0
@@ -108,6 +109,28 @@ function setupControls() {
         setTimeout(() => this.classList.remove('slider-active'), 300);
     });
     
+    // Car type selection
+    const carTypeSelect = document.getElementById('carType');
+    const carDescription = document.getElementById('carDescription');
+    
+    carTypeSelect.addEventListener('change', function() {
+        appState.carType = this.value;
+        
+        // Update the wind tunnel
+        if (windTunnelApp) {
+            windTunnelApp.setCarType(appState.carType);
+        }
+        
+        // Update car description
+        updateCarDescription(appState.carType);
+        
+        // Add visual feedback
+        this.classList.add('select-active');
+        setTimeout(() => this.classList.remove('select-active'), 300);
+        
+        console.log('Car type changed to:', appState.carType);
+    });
+    
     // Camera view buttons
     setupCameraButtons();
 }
@@ -160,6 +183,24 @@ function setActiveView(viewName, buttonElement) {
     appState.currentView = viewName;
     
     console.log('Camera view changed to:', viewName);
+}
+
+// Update car description based on selected car type
+function updateCarDescription(carType) {
+    const carDescription = document.getElementById('carDescription');
+    
+    const descriptions = {
+        sedan: "Standard passenger car with good aerodynamics",
+        sports: "Low-profile car with aggressive aerodynamics",
+        suv: "Tall vehicle with higher drag coefficient",
+        truck: "Large vehicle with poor aerodynamics"
+    };
+    
+    if (carDescription && descriptions[carType]) {
+        carDescription.textContent = descriptions[carType];
+        carDescription.classList.add('description-updating');
+        setTimeout(() => carDescription.classList.remove('description-updating'), 500);
+    }
 }
 
 // Set up Progressive Web App features
