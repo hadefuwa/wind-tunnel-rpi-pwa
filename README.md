@@ -2,7 +2,8 @@
 
 A **Progressive Web App** that simulates a 3D wind tunnel with a car model, animated wind particles, and real-time aerodynamic calculations. Designed specifically for **Raspberry Pi 7" touchscreen** (800x480) but works on any modern device.
 
-![Wind Tunnel Preview](assets/screenshots/preview.png)
+![image](https://github.com/user-attachments/assets/6f6d39de-dfda-4117-99c6-e04d0e5faeb7)
+
 
 ## ✨ Features
 
