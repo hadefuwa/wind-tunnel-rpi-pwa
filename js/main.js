@@ -176,6 +176,9 @@ function setupControls() {
     // Refresh settings button
     setupRefreshButton();
     
+    // Edit position system
+    setupEditPositionSystem();
+    
     // Camera view buttons
     setupCameraButtons();
 }
@@ -289,6 +292,198 @@ function setupRefreshButton() {
     }
 }
 
+// Set up edit position system
+function setupEditPositionSystem() {
+    console.log('Setting up edit position system...');
+    
+    const editPositionBtn = document.getElementById('editPositionBtn');
+    const savePositionBtn = document.getElementById('savePositionBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const editModeInfo = document.getElementById('editModeInfo');
+    const currentViewMode = document.getElementById('currentViewMode');
+    
+    let isEditMode = false;
+    let originalPosition = null;
+    
+    // Edit Position button
+    if (editPositionBtn) {
+        editPositionBtn.addEventListener('click', function() {
+            if (!windTunnelApp || !windTunnelApp.carModel) {
+                showNotification('Wind tunnel not ready', 'error');
+                return;
+            }
+            
+            // Check if current car is STL
+            if (!windTunnelApp.carModel.isSTLCar()) {
+                showNotification('Edit position only works with STL models', 'error');
+                return;
+            }
+            
+            // Enter edit mode
+            isEditMode = true;
+            originalPosition = windTunnelApp.carModel.getPosition();
+            
+            // Update UI
+            this.classList.add('active');
+            this.textContent = '✏️ Editing...';
+            savePositionBtn.style.display = 'inline-block';
+            cancelEditBtn.style.display = 'inline-block';
+            editModeInfo.style.display = 'block';
+            
+            // Update view mode indicator
+            updateViewModeIndicator();
+            
+            // Enable drag controls
+            enableDragControls();
+            
+            // Add visual feedback overlay
+            addEditModeOverlay();
+            
+            showNotification('Edit mode enabled - drag your STL model!', 'success');
+            console.log('Edit position mode enabled');
+        });
+    }
+    
+    // Save Position button
+    if (savePositionBtn) {
+        savePositionBtn.addEventListener('click', function() {
+            if (!isEditMode) return;
+            
+            // Get current position
+            const currentPosition = windTunnelApp.carModel.getPosition();
+            const currentCarType = windTunnelApp.carModel.getCurrentCarType();
+            
+            // Save to settings
+            if (window.carSettings) {
+                window.carSettings.setPosition(currentCarType, currentPosition);
+                windTunnelApp.carModel.updateCachedPosition();
+            }
+            
+            // Exit edit mode
+            exitEditMode();
+            
+            showNotification('Position saved successfully!', 'success');
+            console.log('Position saved:', currentPosition);
+        });
+    }
+    
+    // Cancel Edit button
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', function() {
+            if (!isEditMode) return;
+            
+            // Restore original position
+            if (originalPosition) {
+                windTunnelApp.carModel.setPosition(originalPosition.x, originalPosition.y, originalPosition.z);
+            }
+            
+            // Exit edit mode
+            exitEditMode();
+            
+            showNotification('Edit cancelled - position restored', 'info');
+            console.log('Edit position cancelled');
+        });
+    }
+    
+    // Function to exit edit mode
+    function exitEditMode() {
+        isEditMode = false;
+        originalPosition = null;
+        
+        // Update UI
+        editPositionBtn.classList.remove('active');
+        editPositionBtn.textContent = '✏️ Edit Position';
+        savePositionBtn.style.display = 'none';
+        cancelEditBtn.style.display = 'none';
+        editModeInfo.style.display = 'none';
+        
+        // Disable drag controls
+        disableDragControls();
+        
+        // Remove visual feedback overlay
+        removeEditModeOverlay();
+    }
+    
+    // Function to update view mode indicator
+    function updateViewModeIndicator() {
+        if (!currentViewMode) return;
+        
+        const currentView = appState.currentView;
+        let modeText = '';
+        
+        switch (currentView) {
+            case 'front':
+                modeText = 'Front View: Move Left-Right Only';
+                break;
+            case 'side':
+                modeText = 'Side View: Move Up-Down Only';
+                break;
+            case 'top':
+                modeText = 'Top View: Move Left-Right Only';
+                break;
+            default:
+                modeText = 'Front View: Move Left-Right Only';
+        }
+        
+        currentViewMode.textContent = modeText;
+    }
+    
+    // Function to enable drag controls
+    function enableDragControls() {
+        if (!windTunnelApp) return;
+        
+        // Enable drag mode in wind tunnel
+        windTunnelApp.enableDragMode(appState.currentView);
+        
+        console.log('Drag controls enabled for view:', appState.currentView);
+    }
+    
+    // Function to disable drag controls
+    function disableDragControls() {
+        if (!windTunnelApp) return;
+        
+        // Disable drag mode in wind tunnel
+        windTunnelApp.disableDragMode();
+        
+        console.log('Drag controls disabled');
+    }
+    
+    // Update view mode when camera view changes
+    window.addEventListener('cameraViewChanged', function(event) {
+        if (isEditMode) {
+            updateViewModeIndicator();
+            // Update drag controls for new view
+            enableDragControls();
+        }
+    });
+    
+    // Function to add edit mode overlay
+    function addEditModeOverlay() {
+        // Remove existing overlay if any
+        removeEditModeOverlay();
+        
+        // Create overlay element
+        const overlay = document.createElement('div');
+        overlay.id = 'editModeOverlay';
+        overlay.className = 'edit-mode-active';
+        overlay.innerHTML = '✏️ EDIT MODE ACTIVE - Drag your STL model to position it';
+        
+        // Add to page
+        document.body.appendChild(overlay);
+        
+        console.log('Edit mode overlay added');
+    }
+    
+    // Function to remove edit mode overlay
+    function removeEditModeOverlay() {
+        const overlay = document.getElementById('editModeOverlay');
+        if (overlay) {
+            overlay.remove();
+            console.log('Edit mode overlay removed');
+        }
+    }
+}
+
 // Set up camera view buttons
 function setupCameraButtons() {
     const frontViewBtn = document.getElementById('frontView');
@@ -301,6 +496,10 @@ function setupCameraButtons() {
         if (windTunnelApp) {
             windTunnelApp.setCameraView('front');
         }
+        // Dispatch camera view changed event
+        window.dispatchEvent(new CustomEvent('cameraViewChanged', {
+            detail: { view: 'front' }
+        }));
     });
     
     // Side view button
@@ -309,6 +508,10 @@ function setupCameraButtons() {
         if (windTunnelApp) {
             windTunnelApp.setCameraView('side');
         }
+        // Dispatch camera view changed event
+        window.dispatchEvent(new CustomEvent('cameraViewChanged', {
+            detail: { view: 'side' }
+        }));
     });
     
     // Top view button
@@ -317,6 +520,10 @@ function setupCameraButtons() {
         if (windTunnelApp) {
             windTunnelApp.setCameraView('top');
         }
+        // Dispatch camera view changed event
+        window.dispatchEvent(new CustomEvent('cameraViewChanged', {
+            detail: { view: 'top' }
+        }));
     });
 }
 

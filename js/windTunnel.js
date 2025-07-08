@@ -36,6 +36,9 @@ class WindTunnelApp {
         // Initialize physics calculator
         this.aerodynamicsCalculator = new AerodynamicsCalculator();
         
+        // Initialize drag system
+        this.initializeDragSystem();
+        
         console.log('Wind Tunnel App created successfully!');
     }
     
@@ -123,92 +126,50 @@ class WindTunnelApp {
         this.createWindIndicators();
     }
     
-    // Create a more realistic rectangular test section
+    // Create a rectangular test section with solid floor
     createTestSection() {
         console.log('Creating rectangular test section...');
         
-        // Test section dimensions (more rectangular, better for STL positioning)
-        const width = 8;   // Width of test section
-        const height = 6;  // Height of test section  
-        const length = 12; // Length of test section
+        // Test section dimensions (12 wide, 6 deep as requested)
+        const width = 6;   // Depth of test section (6 deep)
+        const height = 4;  // Height of test section (smaller for better view)
+        const length = 12; // Width of test section (12 wide)
         
-        // Create test section walls (transparent)
-        const wallMaterial = new THREE.MeshBasicMaterial({ 
-            color: 0x2196F3,
-            transparent: true,
-            opacity: 0.15,
-            side: THREE.DoubleSide
-        });
+        // Create solid floor
+        this.createSolidFloor(length, width, height);
         
-        // Floor
-        const floorGeometry = new THREE.PlaneGeometry(length, width);
-        const floor = new THREE.Mesh(floorGeometry, wallMaterial);
-        floor.rotation.x = -Math.PI / 2;
-        floor.position.y = -height / 2;
-        this.scene.add(floor);
-        
-        // Ceiling
-        const ceiling = new THREE.Mesh(floorGeometry, wallMaterial);
-        ceiling.rotation.x = Math.PI / 2;
-        ceiling.position.y = height / 2;
-        this.scene.add(ceiling);
-        
-        // Left wall
-        const wallGeometry = new THREE.PlaneGeometry(length, height);
-        const leftWall = new THREE.Mesh(wallGeometry, wallMaterial);
-        leftWall.rotation.y = Math.PI / 2;
-        leftWall.position.z = -width / 2;
-        this.scene.add(leftWall);
-        
-        // Right wall
-        const rightWall = new THREE.Mesh(wallGeometry, wallMaterial);
-        rightWall.rotation.y = -Math.PI / 2;
-        rightWall.position.z = width / 2;
-        this.scene.add(rightWall);
-        
-        // Create test section grid on floor for reference
-        const gridHelper = new THREE.GridHelper(length, 12, 0x444444, 0x222222);
+        // Create test section grid on floor for reference (12 wide, 6 deep)
+        const gridHelper = new THREE.GridHelper(length, 24, 0x444444, 0x222222); // 24 divisions for 12 wide
         gridHelper.position.y = -height / 2 + 0.01; // Slightly above floor
+        gridHelper.rotateY(Math.PI / 2); // Rotate to align with new dimensions
         this.scene.add(gridHelper);
-        
-        // Create center reference lines
-        this.createCenterLines(length, width, height);
         
         console.log('Rectangular test section created');
     }
     
-    // Create center reference lines to help with STL positioning
-    createCenterLines(length, width, height) {
-        const lineMaterial = new THREE.LineBasicMaterial({ 
-            color: 0xff0000,
-            transparent: true,
-            opacity: 0.6
+    // Create solid floor for the test section
+    createSolidFloor(length, width, height) {
+        // Create solid floor material
+        const floorMaterial = new THREE.MeshLambertMaterial({ 
+            color: 0x333333,  // Dark gray
+            side: THREE.DoubleSide
         });
         
-        // Center line along length (X-axis)
-        const centerLineGeometry = new THREE.BufferGeometry().setFromPoints([
-            new THREE.Vector3(-length/2, -height/2 + 0.02, 0),
-            new THREE.Vector3(length/2, -height/2 + 0.02, 0)
-        ]);
-        const centerLine = new THREE.Line(centerLineGeometry, lineMaterial);
-        this.scene.add(centerLine);
+        // Create floor geometry
+        const floorGeometry = new THREE.PlaneGeometry(length, width);
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
         
-        // Center line along width (Z-axis)
-        const crossLineGeometry = new THREE.BufferGeometry().setFromPoints([
-            new THREE.Vector3(0, -height/2 + 0.02, -width/2),
-            new THREE.Vector3(0, -height/2 + 0.02, width/2)
-        ]);
-        const crossLine = new THREE.Line(crossLineGeometry, lineMaterial);
-        this.scene.add(crossLine);
+        // Position the floor
+        floor.rotation.x = -Math.PI / 2;  // Rotate to be horizontal
+        floor.position.y = -height / 2;   // Position at bottom of test section
         
-        // Vertical center line (Y-axis)
-        const verticalLineGeometry = new THREE.BufferGeometry().setFromPoints([
-            new THREE.Vector3(0, -height/2, 0),
-            new THREE.Vector3(0, height/2, 0)
-        ]);
-        const verticalLine = new THREE.Line(verticalLineGeometry, lineMaterial);
-        this.scene.add(verticalLine);
+        // Add to scene
+        this.scene.add(floor);
+        
+        console.log('Solid floor created');
     }
+    
+
     
     // Create wind direction indicators
     createWindIndicators() {
@@ -435,5 +396,281 @@ class WindTunnelApp {
         );
         
         return forces;
+    }
+    
+    // Initialize drag system
+    initializeDragSystem() {
+        this.isDragMode = false;
+        this.currentDragView = 'front';
+        this.isDragging = false;
+        this.dragStartPosition = null;
+        this.dragStartMouse = null;
+        
+        // Create raycaster for mouse intersection
+        this.raycaster = new THREE.Raycaster();
+        this.mouse = new THREE.Vector2();
+        
+        // Bind mouse events
+        this.renderer.domElement.addEventListener('mousedown', (event) => this.onMouseDown(event));
+        this.renderer.domElement.addEventListener('mousemove', (event) => this.onMouseMove(event));
+        this.renderer.domElement.addEventListener('mouseup', (event) => this.onMouseUp(event));
+        
+        console.log('Drag system initialized');
+    }
+    
+    // Enable drag mode
+    enableDragMode(view = 'front') {
+        this.isDragMode = true;
+        this.currentDragView = view;
+        this.renderer.domElement.style.cursor = 'grab';
+        
+        // Show direction indicators
+        this.showDirectionIndicators(view);
+        
+        console.log('Drag mode enabled for view:', view);
+    }
+    
+    // Disable drag mode
+    disableDragMode() {
+        this.isDragMode = false;
+        this.isDragging = false;
+        this.renderer.domElement.style.cursor = 'default';
+        
+        // Hide direction indicators
+        this.hideDirectionIndicators();
+        
+        console.log('Drag mode disabled');
+    }
+    
+    // Handle mouse down event
+    onMouseDown(event) {
+        if (!this.isDragMode || !this.carModel || !this.carModel.isSTLCar()) return;
+        
+        event.preventDefault();
+        
+        // Calculate mouse position in normalized device coordinates
+        const rect = this.renderer.domElement.getBoundingClientRect();
+        this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        
+        // Cast ray from camera through mouse position
+        this.raycaster.setFromCamera(this.mouse, this.camera);
+        
+        // Check if mouse is over the STL model
+        const stlMesh = this.carModel.getSTLMesh();
+        if (stlMesh) {
+            const intersects = this.raycaster.intersectObject(stlMesh, true);
+            
+            if (intersects.length > 0) {
+                // Start dragging
+                this.isDragging = true;
+                this.dragStartPosition = this.carModel.getPosition();
+                this.dragStartMouse = { x: this.mouse.x, y: this.mouse.y };
+                this.renderer.domElement.style.cursor = 'grabbing';
+                
+                console.log('Started dragging STL model');
+            }
+        }
+    }
+    
+    // Handle mouse move event
+    onMouseMove(event) {
+        if (!this.isDragMode || !this.isDragging || !this.carModel) return;
+        
+        event.preventDefault();
+        
+        // Calculate mouse position in normalized device coordinates
+        const rect = this.renderer.domElement.getBoundingClientRect();
+        this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        
+        // Calculate mouse delta
+        const deltaX = this.mouse.x - this.dragStartMouse.x;
+        const deltaY = this.mouse.y - this.dragStartMouse.y;
+        
+        // Convert mouse delta to world coordinates based on current view
+        const newPosition = this.calculateNewPosition(deltaX, deltaY);
+        
+        // Update model position
+        this.carModel.setPosition(newPosition.x, newPosition.y, newPosition.z);
+        
+        // Update direction indicators to follow the car
+        if (this.directionIndicators) {
+            this.showDirectionIndicators(this.currentDragView);
+        }
+    }
+    
+    // Handle mouse up event
+    onMouseUp(event) {
+        if (!this.isDragMode) return;
+        
+        if (this.isDragging) {
+            this.isDragging = false;
+            this.renderer.domElement.style.cursor = 'grab';
+            console.log('Stopped dragging STL model');
+        }
+    }
+    
+    // Calculate new position based on mouse delta and current view
+    calculateNewPosition(deltaX, deltaY) {
+        const currentPosition = this.carModel.getPosition();
+        const sensitivity = 8; // Reduced sensitivity for better control
+        const gridSize = 0.5; // Grid snap size
+        
+        let newX = currentPosition.x;
+        let newY = currentPosition.y;
+        let newZ = currentPosition.z;
+        
+        // Apply movement constraints based on current view (simplified and more intuitive)
+        switch (this.currentDragView) {
+            case 'front':
+                // Front view: ONLY left-right movement (X axis)
+                newX = this.dragStartPosition.x + (deltaX * sensitivity);
+                // Keep Y and Z unchanged
+                newY = this.dragStartPosition.y;
+                newZ = this.dragStartPosition.z;
+                break;
+                
+            case 'side':
+                // Side view: ONLY up-down movement (Y axis)
+                newY = this.dragStartPosition.y + (deltaY * sensitivity);
+                // Keep X and Z unchanged
+                newX = this.dragStartPosition.x;
+                newZ = this.dragStartPosition.z;
+                break;
+                
+            case 'top':
+                // Top view: ONLY left-right movement (X axis)
+                newX = this.dragStartPosition.x + (deltaX * sensitivity);
+                // Keep Y and Z unchanged
+                newY = this.dragStartPosition.y;
+                newZ = this.dragStartPosition.z;
+                break;
+                
+            default:
+                // Default to front view behavior
+                newX = this.dragStartPosition.x + (deltaX * sensitivity);
+                newY = this.dragStartPosition.y;
+                newZ = this.dragStartPosition.z;
+        }
+        
+        // Snap to grid
+        newX = Math.round(newX / gridSize) * gridSize;
+        newY = Math.round(newY / gridSize) * gridSize;
+        newZ = Math.round(newZ / gridSize) * gridSize;
+        
+        // Constrain position to test section bounds (updated for smaller grid)
+        const bounds = this.getTestSectionBounds();
+        newX = Math.max(bounds.minX, Math.min(bounds.maxX, newX));
+        newY = Math.max(bounds.minY, Math.min(bounds.maxY, newY));
+        newZ = Math.max(bounds.minZ, Math.min(bounds.maxZ, newZ));
+        
+        return { x: newX, y: newY, z: newZ };
+    }
+    
+    // Get test section bounds for position constraints (12 wide, 6 deep, 4 high)
+    getTestSectionBounds() {
+        return {
+            minX: -6,  // 12 wide total (-6 to +6)
+            maxX: 6,
+            minY: -2,  // 4 high total (-2 to +2)
+            maxY: 2,
+            minZ: -3,  // 6 deep total (-3 to +3)
+            maxZ: 3
+        };
+    }
+    
+    // Show direction indicators for edit mode
+    showDirectionIndicators(view) {
+        // Remove existing indicators
+        this.hideDirectionIndicators();
+        
+        // Create indicator group
+        this.directionIndicators = new THREE.Group();
+        
+        // Get car position for indicator placement
+        const carPosition = this.carModel ? this.carModel.getPosition() : { x: 0, y: 0, z: 0 };
+        
+        // Create arrow material
+        const arrowMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0x0088FF,  // Bright blue
+            transparent: true,
+            opacity: 0.8
+        });
+        
+        // Create different indicators based on view
+        switch (view) {
+            case 'front':
+                // Show left-right arrows (X axis)
+                this.createArrowIndicator(-2, 0, 0, 0, 0, Math.PI/2, arrowMaterial, carPosition);  // Left arrow
+                this.createArrowIndicator(2, 0, 0, 0, 0, -Math.PI/2, arrowMaterial, carPosition);  // Right arrow
+                break;
+                
+            case 'side':
+                // Show up-down arrows (Y axis)
+                this.createArrowIndicator(0, 2, 0, 0, 0, 0, arrowMaterial, carPosition);           // Up arrow
+                this.createArrowIndicator(0, -2, 0, Math.PI, 0, 0, arrowMaterial, carPosition);    // Down arrow
+                break;
+                
+            case 'top':
+                // Show left-right arrows (X axis) - same as front view
+                this.createArrowIndicator(-2, 0, 0, 0, 0, Math.PI/2, arrowMaterial, carPosition);  // Left arrow
+                this.createArrowIndicator(2, 0, 0, 0, 0, -Math.PI/2, arrowMaterial, carPosition);  // Right arrow
+                break;
+        }
+        
+        // Add indicators to scene
+        this.scene.add(this.directionIndicators);
+        
+        console.log('Direction indicators shown for view:', view);
+    }
+    
+    // Create a single arrow indicator
+    createArrowIndicator(x, y, z, rotX, rotY, rotZ, material, carPosition) {
+        // Create arrow geometry (cone + cylinder)
+        const arrowGroup = new THREE.Group();
+        
+        // Arrow head (cone)
+        const coneGeometry = new THREE.ConeGeometry(0.2, 0.6, 8);
+        const cone = new THREE.Mesh(coneGeometry, material);
+        cone.position.set(0, 0.3, 0);
+        arrowGroup.add(cone);
+        
+        // Arrow shaft (cylinder)
+        const cylinderGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.6, 8);
+        const cylinder = new THREE.Mesh(cylinderGeometry, material);
+        cylinder.position.set(0, -0.3, 0);
+        arrowGroup.add(cylinder);
+        
+        // Position and rotate the arrow
+        arrowGroup.position.set(
+            carPosition.x + x,
+            carPosition.y + y,
+            carPosition.z + z
+        );
+        arrowGroup.rotation.set(rotX, rotY, rotZ);
+        
+        // Add to indicators group
+        this.directionIndicators.add(arrowGroup);
+    }
+    
+    // Hide direction indicators
+    hideDirectionIndicators() {
+        if (this.directionIndicators) {
+            this.scene.remove(this.directionIndicators);
+            
+            // Clean up geometry and materials
+            this.directionIndicators.traverse((object) => {
+                if (object.geometry) {
+                    object.geometry.dispose();
+                }
+                if (object.material) {
+                    object.material.dispose();
+                }
+            });
+            
+            this.directionIndicators = null;
+            console.log('Direction indicators hidden');
+        }
     }
 } 

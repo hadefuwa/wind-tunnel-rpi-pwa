@@ -655,7 +655,7 @@ class CarModel {
         console.log('STL mesh created and added to car group');
     }
     
-    // Scale STL model to appropriate size
+    // Scale STL model to appropriate size and position it on the ground
     scaleSTLModel(mesh) {
         // Calculate bounding box
         const box = new THREE.Box3().setFromObject(mesh);
@@ -667,11 +667,22 @@ class CarModel {
         
         mesh.scale.set(scaleFactor, scaleFactor, scaleFactor);
         
-        // Center the model
-        const center = box.getCenter(new THREE.Vector3());
-        mesh.position.set(-center.x * scaleFactor, -center.y * scaleFactor, -center.z * scaleFactor);
+        // Get the bounding box after scaling
+        mesh.updateMatrixWorld();
+        const scaledBox = new THREE.Box3().setFromObject(mesh);
+        const scaledSize = scaledBox.getSize(new THREE.Vector3());
+        const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
+        
+        // Position the model so it sits flat on the ground
+        // Center it horizontally (X and Z) but place bottom at Y=0
+        mesh.position.set(
+            -scaledCenter.x,           // Center horizontally (X)
+            -scaledBox.min.y,          // Bottom of model at Y=0 (sits on ground)
+            -scaledCenter.z            // Center horizontally (Z)
+        );
         
         console.log('STL model scaled by factor:', scaleFactor);
+        console.log('STL model positioned on ground at Y=0');
     }
     
     // Fallback to basic car shapes if STL fails
@@ -718,6 +729,23 @@ class CarModel {
     // Check if current car type uses STL
     isSTLCar() {
         return this.carTypes[this.currentCarType].isSTL;
+    }
+    
+    // Get the STL mesh for drag interaction
+    getSTLMesh() {
+        if (!this.isSTLCar() || !this.carGroup) {
+            return null;
+        }
+        
+        // Find the STL mesh in the car group
+        let stlMesh = null;
+        this.carGroup.traverse((child) => {
+            if (child.isMesh && child.geometry && child.geometry.type === 'BufferGeometry') {
+                stlMesh = child;
+            }
+        });
+        
+        return stlMesh;
     }
     
     // Apply saved rotation to STL mesh

@@ -445,6 +445,128 @@
     box-shadow: 0 2px 10px rgba(76, 175, 80, 0.3);
 }
 
+/* Edit Position Controls */
+.edit-position-info {
+    text-align: center;
+    padding: 15px;
+}
+
+.edit-position-info p {
+    color: #888;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.edit-position-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.edit-position-btn {
+    background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+}
+
+.edit-position-btn:hover {
+    background: linear-gradient(135deg, #FFB74D 0%, #FF8F00 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+}
+
+.edit-position-btn.active {
+    background: linear-gradient(135deg, #E65100 0%, #BF360C 100%);
+    box-shadow: 0 2px 10px rgba(230, 81, 0, 0.4);
+}
+
+.save-position-btn {
+    background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.save-position-btn:hover {
+    background: linear-gradient(135deg, #66BB6A 0%, #43A047 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.cancel-edit-btn {
+    background: linear-gradient(135deg, #F44336 0%, #D32F2F 100%);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+}
+
+.cancel-edit-btn:hover {
+    background: linear-gradient(135deg, #EF5350 0%, #C62828 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+}
+
+.edit-mode-info {
+    margin-top: 10px;
+    padding: 8px 15px;
+    background: rgba(255, 152, 0, 0.1);
+    border: 1px solid rgba(255, 152, 0, 0.3);
+    border-radius: 6px;
+}
+
+.view-mode-indicator {
+    color: #FF9800;
+    font-weight: bold;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+/* Edit mode visual feedback */
+.edit-mode-active {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 152, 0, 0.9);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 14px;
+    z-index: 1000;
+    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+    animation: editModeGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes editModeGlow {
+    from {
+        box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+    }
+    to {
+        box-shadow: 0 4px 20px rgba(255, 152, 0, 0.6);
+    }
+}
+
 /* ======================
    MODEL MANAGEMENT
    ====================== */
