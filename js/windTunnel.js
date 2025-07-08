@@ -515,6 +515,26 @@ class WindTunnelApp {
         console.log(`Moved car to: ${newX}, ${newY}, ${newZ} using ${direction} button in ${this.currentView} view`);
     }
     
+    // Rotate car by 90 degrees
+    rotateCarBy90Degrees() {
+        if (!this.isEditMode || !this.carModel || !this.carModel.isSTLCar()) return;
+        
+        // Get current rotation
+        const currentRotation = this.carModel.getRotation();
+        
+        // Add 90 degrees (π/2 radians) to Y rotation
+        const newRotationY = currentRotation.y + (Math.PI / 2);
+        
+        // Set new rotation
+        this.carModel.setRotation(currentRotation.x, newRotationY, currentRotation.z);
+        
+        // Update direction indicators to follow the car
+        if (this.directionIndicators) {
+            this.showDirectionIndicators(this.currentView);
+        }
+        
+        console.log(`Rotated car by 90 degrees. New Y rotation: ${newRotationY} radians`);
+    }
 
     
     // Get test section bounds for position constraints (expanded for more movement freedom)

@@ -522,18 +522,21 @@ function setupEditPositionSystem() {
         const arrowDown = document.getElementById('arrowDown');
         const arrowLeft = document.getElementById('arrowLeft');
         const arrowRight = document.getElementById('arrowRight');
+        const rotateBtn = document.getElementById('rotateBtn');
         
         // Remove existing listeners to prevent duplicates
         arrowUp.replaceWith(arrowUp.cloneNode(true));
         arrowDown.replaceWith(arrowDown.cloneNode(true));
         arrowLeft.replaceWith(arrowLeft.cloneNode(true));
         arrowRight.replaceWith(arrowRight.cloneNode(true));
+        rotateBtn.replaceWith(rotateBtn.cloneNode(true));
         
         // Get fresh references after cloning
         const newArrowUp = document.getElementById('arrowUp');
         const newArrowDown = document.getElementById('arrowDown');
         const newArrowLeft = document.getElementById('arrowLeft');
         const newArrowRight = document.getElementById('arrowRight');
+        const newRotateBtn = document.getElementById('rotateBtn');
         
         // Add event listeners
         newArrowUp.addEventListener('click', () => {
@@ -560,7 +563,14 @@ function setupEditPositionSystem() {
             }
         });
         
-        console.log('Arrow button event listeners set up');
+        // Rotate button event listener
+        newRotateBtn.addEventListener('click', () => {
+            if (windTunnelApp && windTunnelApp.rotateCarBy90Degrees) {
+                windTunnelApp.rotateCarBy90Degrees();
+            }
+        });
+        
+        console.log('Arrow button and rotate button event listeners set up');
     }
     
     // Function to update arrow button states based on current view

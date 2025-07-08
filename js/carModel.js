@@ -840,6 +840,37 @@ class CarModel {
         return { ...this.currentRotation };
     }
     
+    // Generic getRotation method that works for all car types
+    getRotation() {
+        if (this.isSTLCar()) {
+            return this.getSTLRotation();
+        } else {
+            // For basic cars, get rotation from the car group
+            if (this.carGroup) {
+                return {
+                    x: (this.carGroup.rotation.x * 180) / Math.PI,
+                    y: (this.carGroup.rotation.y * 180) / Math.PI,
+                    z: (this.carGroup.rotation.z * 180) / Math.PI
+                };
+            }
+        }
+        return { x: 0, y: 0, z: 0 };
+    }
+    
+    // Generic setRotation method that works for all car types
+    setRotation(x, y, z) {
+        if (this.isSTLCar()) {
+            this.setSTLRotation({ x, y, z });
+        } else {
+            // For basic cars, set rotation on the car group
+            if (this.carGroup) {
+                this.carGroup.rotation.x = (x * Math.PI) / 180;
+                this.carGroup.rotation.y = (y * Math.PI) / 180;
+                this.carGroup.rotation.z = (z * Math.PI) / 180;
+            }
+        }
+    }
+    
     // Save current rotation to storage
     saveSTLRotation() {
         this.settingsStorage.setRotation(this.currentCarType, this.currentRotation);
