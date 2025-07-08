@@ -907,13 +907,13 @@ function updateFPS() {
 
 // Update the real-time data display with all parameters
 function updateDataDisplay(dragForce, liftForce, pressure, allForces) {
-    // Helper function to update a parameter
-    function updateParameter(elementId, barId, value, precision = 2, maxValue = 100) {
+    // Helper function to update a parameter with unit suffix
+    function updateParameter(elementId, barId, value, unit, precision = 2, maxValue = 100) {
         const element = document.getElementById(elementId);
         const bar = document.getElementById(barId);
         
         if (element) {
-            element.textContent = value.toFixed(precision);
+            element.textContent = value.toFixed(precision) + unit;
             element.classList.add('updating');
             setTimeout(() => element.classList.remove('updating'), 500);
         }
@@ -925,27 +925,27 @@ function updateDataDisplay(dragForce, liftForce, pressure, allForces) {
     }
     
     // Update primary forces
-    updateParameter('dragValue', 'dragBar', dragForce, 2, 3);
-    updateParameter('liftValue', 'liftBar', liftForce, 2, 2);
-    updateParameter('pressureValue', 'pressureBar', pressure, 1, 8);
+    updateParameter('dragValue', 'dragBar', dragForce, 'N', 2, 3);
+    updateParameter('liftValue', 'liftBar', liftForce, 'N', 2, 2);
+    updateParameter('pressureValue', 'pressureBar', pressure, 'kPa', 1, 8);
     
     // Update new parameters if available
     if (allForces) {
         // Forces
-        updateParameter('downforceValue', 'downforceBar', allForces.downforce || 0, 2, 2);
+        updateParameter('downforceValue', 'downforceBar', allForces.downforce || 0, 'N', 2, 2);
         
-        // Coefficients
-        updateParameter('cdValue', 'cdBar', allForces.dragCoefficient || 0, 3, 1);
-        updateParameter('clValue', 'clBar', allForces.liftCoefficient || 0, 3, 1);
+        // Coefficients (no units, just dash)
+        updateParameter('cdValue', 'cdBar', allForces.dragCoefficient || 0, '', 3, 1);
+        updateParameter('clValue', 'clBar', allForces.liftCoefficient || 0, '', 3, 1);
         
         // Pressures
-        updateParameter('dynamicPressureValue', 'dynamicPressureBar', allForces.dynamicPressure || 0, 2, 5);
-        updateParameter('stagnationPressureValue', 'stagnationPressureBar', allForces.stagnationPressure || 0, 1, 110);
+        updateParameter('dynamicPressureValue', 'dynamicPressureBar', allForces.dynamicPressure || 0, 'kPa', 2, 5);
+        updateParameter('stagnationPressureValue', 'stagnationPressureBar', allForces.stagnationPressure || 0, 'kPa', 1, 110);
         
         // Flow properties
-        updateParameter('velocityValue', 'velocityBar', allForces.velocity || 0, 1, 50);
+        updateParameter('velocityValue', 'velocityBar', allForces.velocity || 0, 'm/s', 1, 50);
         
-        // Reynolds number (format as millions)
+        // Reynolds number (format as millions with unit)
         const reynoldsElement = document.getElementById('reynoldsValue');
         const reynoldsBar = document.getElementById('reynoldsBar');
         if (reynoldsElement && allForces.reynoldsNumber) {
@@ -960,11 +960,11 @@ function updateDataDisplay(dragForce, liftForce, pressure, allForces) {
         }
         
         // Car properties
-        updateParameter('frontalAreaValue', 'frontalAreaBar', allForces.frontalArea || 0, 1, 4);
-        updateParameter('airDensityValue', 'airDensityBar', allForces.airDensity || 0, 3, 2);
+        updateParameter('frontalAreaValue', 'frontalAreaBar', allForces.frontalArea || 0, 'm²', 1, 4);
+        updateParameter('airDensityValue', 'airDensityBar', allForces.airDensity || 0, 'kg/m³', 3, 2);
         
         // Performance
-        updateParameter('efficiencyValue', 'efficiencyBar', allForces.efficiency || 0, 0, 100);
+        updateParameter('efficiencyValue', 'efficiencyBar', allForces.efficiency || 0, '%', 0, 100);
     }
 }
 

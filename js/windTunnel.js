@@ -519,13 +519,13 @@ class WindTunnelApp {
     rotateCarBy90Degrees() {
         if (!this.isEditMode || !this.carModel || !this.carModel.isSTLCar()) return;
         
-        // Get current rotation
+        // Get current rotation (in degrees)
         const currentRotation = this.carModel.getRotation();
         
-        // Add 90 degrees (π/2 radians) to Y rotation
-        const newRotationY = currentRotation.y + (Math.PI / 2);
+        // Add 90 degrees to Y rotation (keep everything in degrees)
+        const newRotationY = currentRotation.y + 90;
         
-        // Set new rotation
+        // Set new rotation (in degrees)
         this.carModel.setRotation(currentRotation.x, newRotationY, currentRotation.z);
         
         // Update direction indicators to follow the car
@@ -533,7 +533,7 @@ class WindTunnelApp {
             this.showDirectionIndicators(this.currentView);
         }
         
-        console.log(`Rotated car by 90 degrees. New Y rotation: ${newRotationY} radians`);
+        console.log(`Rotated car by 90 degrees. New Y rotation: ${newRotationY} degrees`);
     }
 
     
