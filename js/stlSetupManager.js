@@ -3,57 +3,56 @@
 
 class STLSetupManager {
     constructor() {
-        this.setupControls = {};
         this.previewScene = null;
-        this.previewRenderer = null;
         this.previewCamera = null;
+        this.previewRenderer = null;
         this.previewModel = null;
+        this.setupControls = {};
+        this.isMouseDown = false;
+        this.mouseX = 0;
+        this.mouseY = 0;
+        this.cameraDistance = 5;
+        this.cameraAngleX = 0;
+        this.cameraAngleY = 0;
+        
         this.init();
     }
 
     init() {
-        // Get all setup page controls
+        // Get all control elements
         this.setupControls = {
-            // File input
             fileInput: document.getElementById('stlFileInputSetup'),
             uploadStatus: document.getElementById('uploadStatusSetup'),
-            
-            // Rotation controls
             rotationX: document.getElementById('rotationXSetup'),
             rotationY: document.getElementById('rotationYSetup'),
             rotationZ: document.getElementById('rotationZSetup'),
             rotationXValue: document.getElementById('rotationXValueSetup'),
             rotationYValue: document.getElementById('rotationYValueSetup'),
             rotationZValue: document.getElementById('rotationZValueSetup'),
-            resetRotation: document.getElementById('resetRotationSetup'),
-            saveRotation: document.getElementById('saveRotationSetup'),
-            
-            // Position controls
             positionX: document.getElementById('positionXSetup'),
             positionY: document.getElementById('positionYSetup'),
             positionZ: document.getElementById('positionZSetup'),
             positionXValue: document.getElementById('positionXValueSetup'),
             positionYValue: document.getElementById('positionYValueSetup'),
             positionZValue: document.getElementById('positionZValueSetup'),
+            resetRotation: document.getElementById('resetRotationSetup'),
+            saveRotation: document.getElementById('saveRotationSetup'),
             resetPosition: document.getElementById('resetPositionSetup'),
             savePosition: document.getElementById('savePositionSetup'),
-            
-            // Action buttons
-            applySettings: document.getElementById('applySettingsBtn'),
-            backToMain: document.getElementById('backToMainBtn')
+            applySettings: document.getElementById('applySettingsBtn')
         };
 
+        // Initialize preview
+        this.initPreview();
+        
         // Add event listeners
         this.addEventListeners();
-        
-        // Initialize preview canvas
-        this.initPreview();
     }
 
     addEventListeners() {
-        // File input
+        // File upload
         if (this.setupControls.fileInput) {
-            this.setupControls.fileInput.addEventListener('change', (e) => this.handleFileUpload(e));
+            this.setupControls.fileInput.addEventListener('change', (event) => this.handleFileUpload(event));
         }
 
         // Rotation controls
@@ -78,7 +77,7 @@ class STLSetupManager {
             this.setupControls.positionZ.addEventListener('input', (e) => this.updatePositionValue('Z', e.target.value));
         }
 
-        // Buttons
+        // Button controls
         if (this.setupControls.resetRotation) {
             this.setupControls.resetRotation.addEventListener('click', () => this.resetRotation());
         }
@@ -115,12 +114,80 @@ class STLSetupManager {
         directionalLight.position.set(10, 10, 5);
         this.previewScene.add(directionalLight);
 
-        // Set camera position
-        this.previewCamera.position.set(0, 0, 5);
-        this.previewCamera.lookAt(0, 0, 0);
+        // Set initial camera position
+        this.updateCameraPosition();
+
+        // Add mouse controls for zoom and rotation
+        this.addMouseControls(canvas);
 
         // Start render loop
         this.renderPreview();
+    }
+
+    addMouseControls(canvas) {
+        // Mouse down
+        canvas.addEventListener('mousedown', (event) => {
+            this.isMouseDown = true;
+            this.mouseX = event.clientX;
+            this.mouseY = event.clientY;
+            canvas.style.cursor = 'grabbing';
+        });
+
+        // Mouse move
+        canvas.addEventListener('mousemove', (event) => {
+            if (!this.isMouseDown) return;
+
+            const deltaX = event.clientX - this.mouseX;
+            const deltaY = event.clientY - this.mouseY;
+
+            this.cameraAngleY += deltaX * 0.01;
+            this.cameraAngleX += deltaY * 0.01;
+
+            // Limit vertical rotation
+            this.cameraAngleX = Math.max(-Math.PI/2, Math.min(Math.PI/2, this.cameraAngleX));
+
+            this.updateCameraPosition();
+
+            this.mouseX = event.clientX;
+            this.mouseY = event.clientY;
+        });
+
+        // Mouse up
+        canvas.addEventListener('mouseup', () => {
+            this.isMouseDown = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        // Mouse leave
+        canvas.addEventListener('mouseleave', () => {
+            this.isMouseDown = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        // Mouse wheel for zoom
+        canvas.addEventListener('wheel', (event) => {
+            event.preventDefault();
+            
+            const zoomSpeed = 0.1;
+            this.cameraDistance += event.deltaY * zoomSpeed * 0.01;
+            this.cameraDistance = Math.max(1, Math.min(20, this.cameraDistance));
+
+            this.updateCameraPosition();
+        });
+
+        // Set initial cursor
+        canvas.style.cursor = 'grab';
+    }
+
+    updateCameraPosition() {
+        if (!this.previewCamera) return;
+
+        const x = this.cameraDistance * Math.cos(this.cameraAngleX) * Math.sin(this.cameraAngleY);
+        const y = this.cameraDistance * Math.sin(this.cameraAngleX);
+        const z = this.cameraDistance * Math.cos(this.cameraAngleX) * Math.cos(this.cameraAngleY);
+
+        this.previewCamera.position.set(x, y, z);
+        this.previewCamera.lookAt(0, 0, 0);
     }
 
     renderPreview() {
@@ -337,7 +404,45 @@ class STLSetupManager {
     onPageShow() {
         // Called when the STL setup page is shown
         this.loadCurrentSettings();
+        this.loadCurrentSTLModel(); // Load the current STL model for preview
         this.updatePreviewTransform();
+    }
+
+    // Load current STL model from the main app
+    loadCurrentSTLModel() {
+        if (!window.carManager) return;
+
+        const currentCarType = window.carManager.getCurrentCarType();
+        const carTypes = window.carManager.carTypes;
+        
+        if (carTypes && carTypes[currentCarType] && carTypes[currentCarType].isSTL) {
+            const stlPath = carTypes[currentCarType].stlPath;
+            
+            if (stlPath) {
+                // Load the STL file
+                const loader = new STLLoader();
+                loader.load(
+                    stlPath,
+                    (geometry) => {
+                        this.loadPreviewModel(geometry);
+                        this.setupControls.uploadStatus.textContent = `Loaded: ${carTypes[currentCarType].name}`;
+                        this.setupControls.uploadStatus.style.color = '#4CAF50';
+                    },
+                    (progress) => {
+                        this.setupControls.uploadStatus.textContent = 'Loading current model...';
+                        this.setupControls.uploadStatus.style.color = '#FFA500';
+                    },
+                    (error) => {
+                        this.setupControls.uploadStatus.textContent = 'Error loading current model';
+                        this.setupControls.uploadStatus.style.color = '#f44336';
+                        console.error('Error loading STL:', error);
+                    }
+                );
+            }
+        } else {
+            this.setupControls.uploadStatus.textContent = 'Current car is not an STL model';
+            this.setupControls.uploadStatus.style.color = '#FFA500';
+        }
     }
 }
 
