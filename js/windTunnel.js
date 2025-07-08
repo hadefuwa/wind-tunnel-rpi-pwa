@@ -36,8 +36,8 @@ class WindTunnelApp {
         // Initialize physics calculator
         this.aerodynamicsCalculator = new AerodynamicsCalculator();
         
-        // Initialize drag system
-        this.initializeDragSystem();
+        // Initialize arrow key system
+        this.initializeArrowKeySystem();
         
         console.log('Wind Tunnel App created successfully!');
     }
@@ -398,185 +398,134 @@ class WindTunnelApp {
         return forces;
     }
     
-    // Initialize drag system
-    initializeDragSystem() {
-        this.isDragMode = false;
-        this.currentDragView = 'front';
-        this.isDragging = false;
-        this.dragStartPosition = null;
-        this.dragStartMouse = null;
+    // Initialize arrow key system
+    initializeArrowKeySystem() {
+        this.isEditMode = false;
+        this.currentView = 'front';
+        this.keyboardHandler = null;
         
-        // Create raycaster for mouse intersection
-        this.raycaster = new THREE.Raycaster();
-        this.mouse = new THREE.Vector2();
-        
-        // Bind mouse events
-        this.renderer.domElement.addEventListener('mousedown', (event) => this.onMouseDown(event));
-        this.renderer.domElement.addEventListener('mousemove', (event) => this.onMouseMove(event));
-        this.renderer.domElement.addEventListener('mouseup', (event) => this.onMouseUp(event));
-        
-        console.log('Drag system initialized');
+        console.log('Arrow key positioning system initialized');
     }
     
-    // Enable drag mode
-    enableDragMode(view = 'front') {
-        this.isDragMode = true;
-        this.currentDragView = view;
-        this.renderer.domElement.style.cursor = 'grab';
+    // Enable touch arrow button mode
+    enableArrowKeyMode(view = 'front') {
+        this.isEditMode = true;
+        this.currentView = view;
         
         // Show direction indicators
         this.showDirectionIndicators(view);
         
-        console.log('Drag mode enabled for view:', view);
+        console.log('Touch arrow button mode enabled for view:', view);
     }
     
-    // Disable drag mode
-    disableDragMode() {
-        this.isDragMode = false;
-        this.isDragging = false;
-        this.renderer.domElement.style.cursor = 'default';
+    // Disable touch arrow button mode
+    disableArrowKeyMode() {
+        this.isEditMode = false;
         
         // Hide direction indicators
         this.hideDirectionIndicators();
         
-        console.log('Drag mode disabled');
+        console.log('Touch arrow button mode disabled');
     }
     
-    // Handle mouse down event
-    onMouseDown(event) {
-        if (!this.isDragMode || !this.carModel || !this.carModel.isSTLCar()) return;
+    // Handle touch button input for positioning
+    moveCarWithButton(direction) {
+        if (!this.isEditMode || !this.carModel || !this.carModel.isSTLCar()) return;
         
-        event.preventDefault();
-        
-        // Calculate mouse position in normalized device coordinates
-        const rect = this.renderer.domElement.getBoundingClientRect();
-        this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-        
-        // Cast ray from camera through mouse position
-        this.raycaster.setFromCamera(this.mouse, this.camera);
-        
-        // Check if mouse is over the STL model
-        const stlMesh = this.carModel.getSTLMesh();
-        if (stlMesh) {
-            const intersects = this.raycaster.intersectObject(stlMesh, true);
-            
-            if (intersects.length > 0) {
-                // Start dragging
-                this.isDragging = true;
-                this.dragStartPosition = this.carModel.getPosition();
-                this.dragStartMouse = { x: this.mouse.x, y: this.mouse.y };
-                this.renderer.domElement.style.cursor = 'grabbing';
-                
-                console.log('Started dragging STL model');
-            }
-        }
-    }
-    
-    // Handle mouse move event
-    onMouseMove(event) {
-        if (!this.isDragMode || !this.isDragging || !this.carModel) return;
-        
-        event.preventDefault();
-        
-        // Calculate mouse position in normalized device coordinates
-        const rect = this.renderer.domElement.getBoundingClientRect();
-        this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-        
-        // Calculate mouse delta
-        const deltaX = this.mouse.x - this.dragStartMouse.x;
-        const deltaY = this.mouse.y - this.dragStartMouse.y;
-        
-        // Convert mouse delta to world coordinates based on current view
-        const newPosition = this.calculateNewPosition(deltaX, deltaY);
-        
-        // Update model position
-        this.carModel.setPosition(newPosition.x, newPosition.y, newPosition.z);
-        
-        // Update direction indicators to follow the car
-        if (this.directionIndicators) {
-            this.showDirectionIndicators(this.currentDragView);
-        }
-    }
-    
-    // Handle mouse up event
-    onMouseUp(event) {
-        if (!this.isDragMode) return;
-        
-        if (this.isDragging) {
-            this.isDragging = false;
-            this.renderer.domElement.style.cursor = 'grab';
-            console.log('Stopped dragging STL model');
-        }
-    }
-    
-    // Calculate new position based on mouse delta and current view
-    calculateNewPosition(deltaX, deltaY) {
+        // Get current position
         const currentPosition = this.carModel.getPosition();
-        const sensitivity = 8; // Reduced sensitivity for better control
-        const gridSize = 0.5; // Grid snap size
+        const moveStep = 0.5; // Grid step size
         
         let newX = currentPosition.x;
         let newY = currentPosition.y;
         let newZ = currentPosition.z;
         
-        // Apply movement constraints based on current view (simplified and more intuitive)
-        switch (this.currentDragView) {
+        // Apply movement based on current view and button direction
+        // This makes the arrows match the visual perspective of each view
+        switch (this.currentView) {
             case 'front':
-                // Front view: ONLY left-right movement (X axis)
-                newX = this.dragStartPosition.x + (deltaX * sensitivity);
-                // Keep Y and Z unchanged
-                newY = this.dragStartPosition.y;
-                newZ = this.dragStartPosition.z;
+                // Front view: left/right = X axis, up/down = Y axis
+                switch (direction) {
+                    case 'left':
+                        newX -= moveStep;
+                        break;
+                    case 'right':
+                        newX += moveStep;
+                        break;
+                    case 'up':
+                        newY += moveStep;
+                        break;
+                    case 'down':
+                        newY -= moveStep;
+                        break;
+                }
                 break;
                 
             case 'side':
-                // Side view: ONLY up-down movement (Y axis)
-                newY = this.dragStartPosition.y + (deltaY * sensitivity);
-                // Keep X and Z unchanged
-                newX = this.dragStartPosition.x;
-                newZ = this.dragStartPosition.z;
+                // Side view: left/right = Z axis, up/down = Y axis
+                switch (direction) {
+                    case 'left':
+                        newZ += moveStep; // Left from side view = forward (positive Z)
+                        break;
+                    case 'right':
+                        newZ -= moveStep; // Right from side view = backward (negative Z)
+                        break;
+                    case 'up':
+                        newY += moveStep;
+                        break;
+                    case 'down':
+                        newY -= moveStep;
+                        break;
+                }
                 break;
                 
             case 'top':
-                // Top view: ONLY left-right movement (X axis)
-                newX = this.dragStartPosition.x + (deltaX * sensitivity);
-                // Keep Y and Z unchanged
-                newY = this.dragStartPosition.y;
-                newZ = this.dragStartPosition.z;
+                // Top view: left/right = X axis, up/down = Z axis
+                switch (direction) {
+                    case 'left':
+                        newX -= moveStep;
+                        break;
+                    case 'right':
+                        newX += moveStep;
+                        break;
+                    case 'up':
+                        newZ -= moveStep; // Up from top view = toward wind source (negative Z)
+                        break;
+                    case 'down':
+                        newZ += moveStep; // Down from top view = away from wind source (positive Z)
+                        break;
+                }
                 break;
-                
-            default:
-                // Default to front view behavior
-                newX = this.dragStartPosition.x + (deltaX * sensitivity);
-                newY = this.dragStartPosition.y;
-                newZ = this.dragStartPosition.z;
         }
         
-        // Snap to grid
-        newX = Math.round(newX / gridSize) * gridSize;
-        newY = Math.round(newY / gridSize) * gridSize;
-        newZ = Math.round(newZ / gridSize) * gridSize;
-        
-        // Constrain position to test section bounds (updated for smaller grid)
+        // Constrain position to test section bounds
         const bounds = this.getTestSectionBounds();
         newX = Math.max(bounds.minX, Math.min(bounds.maxX, newX));
         newY = Math.max(bounds.minY, Math.min(bounds.maxY, newY));
         newZ = Math.max(bounds.minZ, Math.min(bounds.maxZ, newZ));
         
-        return { x: newX, y: newY, z: newZ };
+        // Update model position
+        this.carModel.setPosition(newX, newY, newZ);
+        
+        // Update direction indicators to follow the car
+        if (this.directionIndicators) {
+            this.showDirectionIndicators(this.currentView);
+        }
+        
+        console.log(`Moved car to: ${newX}, ${newY}, ${newZ} using ${direction} button in ${this.currentView} view`);
     }
     
-    // Get test section bounds for position constraints (12 wide, 6 deep, 4 high)
+
+    
+    // Get test section bounds for position constraints (expanded for more movement freedom)
     getTestSectionBounds() {
         return {
-            minX: -6,  // 12 wide total (-6 to +6)
-            maxX: 6,
-            minY: 0,   // Floor is at Y=0, so minimum Y should be 0 (on the floor)
-            maxY: 4,   // 4 high total (0 to +4)
-            minZ: -3,  // 6 deep total (-3 to +3)
-            maxZ: 3
+            minX: -12,  // 24 wide total (-12 to +12) - much more room to move left/right
+            maxX: 12,
+            minY: 0,    // Floor is at Y=0, so minimum Y should be 0 (on the floor)
+            maxY: 8,    // 8 high total (0 to +8) - more room to move up
+            minZ: -8,   // 16 deep total (-8 to +8) - more room to move forward/backward
+            maxZ: 8
         };
     }
     
@@ -598,24 +547,30 @@ class WindTunnelApp {
             opacity: 0.8
         });
         
-        // Create different indicators based on view
+        // Create different indicators based on view to match movement directions
         switch (view) {
             case 'front':
-                // Show left-right arrows (X axis)
-                this.createArrowIndicator(-2, 0, 0, 0, 0, Math.PI/2, arrowMaterial, carPosition);  // Left arrow
-                this.createArrowIndicator(2, 0, 0, 0, 0, -Math.PI/2, arrowMaterial, carPosition);  // Right arrow
+                // Front view: left/right = X axis, up/down = Y axis
+                this.createArrowIndicator(-2, 0, 0, 0, 0, Math.PI/2, arrowMaterial, carPosition);  // Left arrow (X-)
+                this.createArrowIndicator(2, 0, 0, 0, 0, -Math.PI/2, arrowMaterial, carPosition);  // Right arrow (X+)
+                this.createArrowIndicator(0, 2, 0, 0, 0, 0, arrowMaterial, carPosition);           // Up arrow (Y+)
+                this.createArrowIndicator(0, -2, 0, Math.PI, 0, 0, arrowMaterial, carPosition);    // Down arrow (Y-)
                 break;
                 
             case 'side':
-                // Show up-down arrows (Y axis)
-                this.createArrowIndicator(0, 2, 0, 0, 0, 0, arrowMaterial, carPosition);           // Up arrow
-                this.createArrowIndicator(0, -2, 0, Math.PI, 0, 0, arrowMaterial, carPosition);    // Down arrow
+                // Side view: left/right = Z axis, up/down = Y axis
+                this.createArrowIndicator(0, 0, 2, 0, Math.PI/2, 0, arrowMaterial, carPosition);   // Left arrow (Z+, forward)
+                this.createArrowIndicator(0, 0, -2, 0, -Math.PI/2, 0, arrowMaterial, carPosition); // Right arrow (Z-, backward)
+                this.createArrowIndicator(0, 2, 0, 0, 0, 0, arrowMaterial, carPosition);           // Up arrow (Y+)
+                this.createArrowIndicator(0, -2, 0, Math.PI, 0, 0, arrowMaterial, carPosition);    // Down arrow (Y-)
                 break;
                 
             case 'top':
-                // Show left-right arrows (X axis) - same as front view
-                this.createArrowIndicator(-2, 0, 0, 0, 0, Math.PI/2, arrowMaterial, carPosition);  // Left arrow
-                this.createArrowIndicator(2, 0, 0, 0, 0, -Math.PI/2, arrowMaterial, carPosition);  // Right arrow
+                // Top view: left/right = X axis, up/down = Z axis
+                this.createArrowIndicator(-2, 0, 0, 0, 0, Math.PI/2, arrowMaterial, carPosition);  // Left arrow (X-)
+                this.createArrowIndicator(2, 0, 0, 0, 0, -Math.PI/2, arrowMaterial, carPosition);  // Right arrow (X+)
+                this.createArrowIndicator(0, 0, -2, 0, -Math.PI/2, 0, arrowMaterial, carPosition); // Up arrow (Z-, toward wind)
+                this.createArrowIndicator(0, 0, 2, 0, Math.PI/2, 0, arrowMaterial, carPosition);   // Down arrow (Z+, away from wind)
                 break;
         }
         

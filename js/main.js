@@ -333,13 +333,16 @@ function setupEditPositionSystem() {
             // Update view mode indicator
             updateViewModeIndicator();
             
-            // Enable drag controls
-            enableDragControls();
+            // Enable arrow key controls
+            enableArrowKeyControls();
+            
+            // Show arrow controls
+            showArrowControls();
             
             // Add visual feedback overlay
             addEditModeOverlay();
             
-            showNotification('Edit mode enabled - drag your STL model!', 'success');
+            showNotification('Edit mode enabled - tap arrow buttons to position your STL model!', 'success');
             console.log('Edit position mode enabled');
         });
     }
@@ -397,8 +400,11 @@ function setupEditPositionSystem() {
         cancelEditBtn.style.display = 'none';
         editModeInfo.style.display = 'none';
         
-        // Disable drag controls
-        disableDragControls();
+        // Disable arrow key controls
+        disableArrowKeyControls();
+        
+        // Hide arrow controls
+        hideArrowControls();
         
         // Remove visual feedback overlay
         removeEditModeOverlay();
@@ -413,47 +419,49 @@ function setupEditPositionSystem() {
         
         switch (currentView) {
             case 'front':
-                modeText = 'Front View: Move Left-Right Only';
+                modeText = 'Front View: ←→ Left/Right, ↑↓ Up/Down';
                 break;
             case 'side':
-                modeText = 'Side View: Move Up-Down Only';
+                modeText = 'Side View: ←→ Forward/Back, ↑↓ Up/Down';
                 break;
             case 'top':
-                modeText = 'Top View: Move Left-Right Only';
+                modeText = 'Top View: ←→ Left/Right, ↑↓ Toward/Away Wind';
                 break;
             default:
-                modeText = 'Front View: Move Left-Right Only';
+                modeText = 'Front View: ←→ Left/Right, ↑↓ Up/Down';
         }
         
         currentViewMode.textContent = modeText;
     }
     
-    // Function to enable drag controls
-    function enableDragControls() {
+    // Function to enable arrow key controls
+    function enableArrowKeyControls() {
         if (!windTunnelApp) return;
         
-        // Enable drag mode in wind tunnel
-        windTunnelApp.enableDragMode(appState.currentView);
+        // Enable arrow key mode in wind tunnel
+        windTunnelApp.enableArrowKeyMode(appState.currentView);
         
-        console.log('Drag controls enabled for view:', appState.currentView);
+        console.log('Arrow key controls enabled for view:', appState.currentView);
     }
     
-    // Function to disable drag controls
-    function disableDragControls() {
+    // Function to disable arrow key controls
+    function disableArrowKeyControls() {
         if (!windTunnelApp) return;
         
-        // Disable drag mode in wind tunnel
-        windTunnelApp.disableDragMode();
+        // Disable arrow key mode in wind tunnel
+        windTunnelApp.disableArrowKeyMode();
         
-        console.log('Drag controls disabled');
+        console.log('Arrow key controls disabled');
     }
     
     // Update view mode when camera view changes
     window.addEventListener('cameraViewChanged', function(event) {
         if (isEditMode) {
             updateViewModeIndicator();
-            // Update drag controls for new view
-            enableDragControls();
+            // Update arrow key controls for new view
+            enableArrowKeyControls();
+            // Update arrow button states for new view
+            updateArrowButtonStates();
         }
     });
     
@@ -466,7 +474,7 @@ function setupEditPositionSystem() {
         const overlay = document.createElement('div');
         overlay.id = 'editModeOverlay';
         overlay.className = 'edit-mode-active';
-        overlay.innerHTML = '✏️ EDIT MODE ACTIVE - Drag your STL model to position it';
+        overlay.innerHTML = '✏️ EDIT MODE ACTIVE - Use arrow keys to position your STL model';
         
         // Add to page
         document.body.appendChild(overlay);
@@ -481,6 +489,117 @@ function setupEditPositionSystem() {
             overlay.remove();
             console.log('Edit mode overlay removed');
         }
+    }
+    
+    // Function to show arrow controls
+    function showArrowControls() {
+        const arrowControls = document.getElementById('arrowControls');
+        if (arrowControls) {
+            arrowControls.style.display = 'block';
+            
+            // Set up button event listeners
+            setupArrowButtons();
+            
+            // Update button states based on current view
+            updateArrowButtonStates();
+            
+            console.log('Arrow controls shown');
+        }
+    }
+    
+    // Function to hide arrow controls
+    function hideArrowControls() {
+        const arrowControls = document.getElementById('arrowControls');
+        if (arrowControls) {
+            arrowControls.style.display = 'none';
+            console.log('Arrow controls hidden');
+        }
+    }
+    
+    // Function to set up arrow button event listeners
+    function setupArrowButtons() {
+        const arrowUp = document.getElementById('arrowUp');
+        const arrowDown = document.getElementById('arrowDown');
+        const arrowLeft = document.getElementById('arrowLeft');
+        const arrowRight = document.getElementById('arrowRight');
+        
+        // Remove existing listeners to prevent duplicates
+        arrowUp.replaceWith(arrowUp.cloneNode(true));
+        arrowDown.replaceWith(arrowDown.cloneNode(true));
+        arrowLeft.replaceWith(arrowLeft.cloneNode(true));
+        arrowRight.replaceWith(arrowRight.cloneNode(true));
+        
+        // Get fresh references after cloning
+        const newArrowUp = document.getElementById('arrowUp');
+        const newArrowDown = document.getElementById('arrowDown');
+        const newArrowLeft = document.getElementById('arrowLeft');
+        const newArrowRight = document.getElementById('arrowRight');
+        
+        // Add event listeners
+        newArrowUp.addEventListener('click', () => {
+            if (windTunnelApp && windTunnelApp.moveCarWithButton) {
+                windTunnelApp.moveCarWithButton('up');
+            }
+        });
+        
+        newArrowDown.addEventListener('click', () => {
+            if (windTunnelApp && windTunnelApp.moveCarWithButton) {
+                windTunnelApp.moveCarWithButton('down');
+            }
+        });
+        
+        newArrowLeft.addEventListener('click', () => {
+            if (windTunnelApp && windTunnelApp.moveCarWithButton) {
+                windTunnelApp.moveCarWithButton('left');
+            }
+        });
+        
+        newArrowRight.addEventListener('click', () => {
+            if (windTunnelApp && windTunnelApp.moveCarWithButton) {
+                windTunnelApp.moveCarWithButton('right');
+            }
+        });
+        
+        console.log('Arrow button event listeners set up');
+    }
+    
+    // Function to update arrow button states based on current view
+    function updateArrowButtonStates() {
+        const arrowUp = document.getElementById('arrowUp');
+        const arrowDown = document.getElementById('arrowDown');
+        const arrowLeft = document.getElementById('arrowLeft');
+        const arrowRight = document.getElementById('arrowRight');
+        const arrowInstructions = document.getElementById('arrowInstructions');
+        
+        if (!arrowUp || !arrowDown || !arrowLeft || !arrowRight || !arrowInstructions) return;
+        
+        // Enable all buttons in all views
+        arrowUp.disabled = false;
+        arrowDown.disabled = false;
+        arrowLeft.disabled = false;
+        arrowRight.disabled = false;
+        
+        // Update instructions text based on current view
+        const currentView = appState.currentView;
+        let instructionText = '';
+        
+        switch (currentView) {
+            case 'front':
+                instructionText = '←→ Left/Right, ↑↓ Up/Down';
+                break;
+            case 'side':
+                instructionText = '←→ Forward/Back, ↑↓ Up/Down';
+                break;
+            case 'top':
+                instructionText = '←→ Left/Right, ↑↓ Toward/Away Wind';
+                break;
+            default:
+                instructionText = '←→ Left/Right, ↑↓ Up/Down';
+        }
+        
+        arrowInstructions.textContent = instructionText;
+        
+        console.log('Arrow button states updated - all directions enabled for view:', appState.currentView);
     }
 }
 

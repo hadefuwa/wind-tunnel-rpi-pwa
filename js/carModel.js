@@ -713,6 +713,9 @@ class CarModel {
     loadCustomSTL(file, onSuccess, onError) {
         console.log('Loading custom STL file:', file.name);
         
+        // First, ensure we clean up any existing cars completely
+        this.forceCleanupScene();
+        
         this.stlLoader.loadFromFile(
             file,
             (geometry) => {
@@ -734,6 +737,46 @@ class CarModel {
                 if (onError) onError(error);
             }
         );
+    }
+    
+    // Force cleanup of the scene to prevent duplicate cars
+    forceCleanupScene() {
+        console.log('Forcing scene cleanup to prevent duplicate cars...');
+        
+        // Remove car from scene if it exists
+        if (this.carGroup && this.carGroup.parent) {
+            this.carGroup.parent.remove(this.carGroup);
+            console.log('Removed car group from scene');
+        }
+        
+        // Clean up all car group contents
+        if (this.carGroup) {
+            this.carGroup.traverse((object) => {
+                if (object.geometry) {
+                    object.geometry.dispose();
+                }
+                if (object.material) {
+                    if (Array.isArray(object.material)) {
+                        object.material.forEach(material => material.dispose());
+                    } else {
+                        object.material.dispose();
+                    }
+                }
+            });
+            
+            // Clear all children
+            while (this.carGroup.children.length > 0) {
+                this.carGroup.remove(this.carGroup.children[0]);
+            }
+        }
+        
+        // Clean up custom STL geometry if it exists
+        if (this.customSTLGeometry) {
+            this.customSTLGeometry.dispose();
+            this.customSTLGeometry = null;
+        }
+        
+        console.log('Scene cleanup completed');
     }
     
     // Check if current car type uses STL

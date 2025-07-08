@@ -567,6 +567,94 @@
     }
 }
 
+/* Arrow Controls */
+.arrow-controls-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+    pointer-events: none;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+}
+
+.arrow-controls-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.arrow-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.arrow-btn {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    pointer-events: auto;
+}
+
+.arrow-btn:hover {
+    background: linear-gradient(135deg, #42A5F5 0%, #2196F3 100%);
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
+}
+
+.arrow-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.6);
+}
+
+.arrow-btn:disabled {
+    background: rgba(100, 100, 100, 0.3);
+    color: rgba(255, 255, 255, 0.3);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.arrow-center {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+}
+
+.arrow-instructions {
+    font-size: 10px;
+    color: #888;
+    text-align: center;
+    line-height: 1.2;
+    word-wrap: break-word;
+}
+
 /* ======================
    MODEL MANAGEMENT
    ====================== */

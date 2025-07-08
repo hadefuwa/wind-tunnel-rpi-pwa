@@ -35,6 +35,25 @@
             <!-- Main 3D Canvas -->
             <canvas id="windTunnelCanvas"></canvas>
             
+            <!-- On-Screen Arrow Controls Overlay -->
+            <div id="arrowControls" class="arrow-controls-overlay" style="display: none;">
+                <div class="arrow-controls-grid">
+                    <div class="arrow-row">
+                        <button id="arrowUp" class="arrow-btn arrow-up">▲</button>
+                    </div>
+                    <div class="arrow-row">
+                        <button id="arrowLeft" class="arrow-btn arrow-left">◀</button>
+                        <div class="arrow-center">
+                            <span id="arrowInstructions" class="arrow-instructions">Tap arrows to move</span>
+                        </div>
+                        <button id="arrowRight" class="arrow-btn arrow-right">▶</button>
+                    </div>
+                    <div class="arrow-row">
+                        <button id="arrowDown" class="arrow-btn arrow-down">▼</button>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Loading Screen -->
             <div id="loadingScreen" class="loading-screen">
                 <div class="loading-spinner"></div>
@@ -109,7 +128,7 @@
                 <div class="control-section" id="editPositionSection">
                     <h3>Edit Position</h3>
                     <div class="edit-position-info">
-                        <p>Click and drag your STL model to position it in the test section.</p>
+                        <p>Tap the arrow buttons to position your STL model in the test section.</p>
                         <div class="edit-position-controls">
                             <button id="editPositionBtn" class="edit-position-btn">✏️ Edit Position</button>
                             <button id="savePositionBtn" class="save-position-btn" style="display: none;">💾 Save Position</button>
@@ -118,6 +137,8 @@
                         <div id="editModeInfo" class="edit-mode-info" style="display: none;">
                             <span id="currentViewMode" class="view-mode-indicator">Front View: Move X/Y</span>
                         </div>
+                        
+
                     </div>
                 </div>
                 
