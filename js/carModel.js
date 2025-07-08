@@ -15,6 +15,7 @@ class CarModel {
         this.customSTLGeometry = null; // Store custom STL geometry
         this.settingsStorage = new CarSettingsStorage(); // Initialize settings storage
         this.currentRotation = { x: 0, y: 0, z: 0 }; // Track current rotation
+        this.cachedPosition = null; // Cache position for animation
         
         // Define different car types with their characteristics
         this.carTypes = {
@@ -124,7 +125,7 @@ class CarModel {
             this.settingsStorage.getPosition(this.currentCarType) : 
             { x: 0, y: -1.5, z: 0 };
         
-        this.carGroup.position.set(savedPosition.x, savedPosition.y, savedPosition.z);
+        this.setPosition(savedPosition.x, savedPosition.y, savedPosition.z);
         
         console.log('Car assembly complete!');
     }
@@ -447,6 +448,14 @@ class CarModel {
     
     applyPosition(positionData) {
         this.setPosition(positionData.x, positionData.y, positionData.z);
+        
+        // Also save the position to storage so animate() doesn't override it
+        if (this.settingsStorage) {
+            this.settingsStorage.setPosition(this.currentCarType, positionData);
+        }
+        
+        // Update cached position
+        this.updateCachedPosition();
     }
     
     // Get all available car types
@@ -485,6 +494,9 @@ class CarModel {
         if (!this.carGroup) return;
         
         this.carGroup.position.set(x, y, z);
+        
+        // Update cached position when position is set directly
+        this.cachedPosition = { x, y, z };
         
         console.log('Car position set to:', x, y, z);
     }
@@ -535,25 +547,32 @@ class CarModel {
         console.log('Headlights added');
     }
     
+    // Update cached position (call this when position changes)
+    updateCachedPosition() {
+        this.cachedPosition = this.settingsStorage ? 
+            this.settingsStorage.getPosition(this.currentCarType) : 
+            { x: 0, y: -1.5, z: 0 };
+    }
+
     // Animate the car (subtle movement)
     animate(currentTime) {
         if (!this.carGroup) return;
         
-        // Get the saved position for this car type
-        const savedPosition = this.settingsStorage ? 
-            this.settingsStorage.getPosition(this.currentCarType) : 
-            { x: 0, y: -1.5, z: 0 };
+        // Use cached position or get it if not cached
+        if (!this.cachedPosition) {
+            this.updateCachedPosition();
+        }
         
-        // Add subtle bouncing motion relative to saved position
+        // Add subtle bouncing motion relative to cached position
         const time = currentTime * 0.001;
         const bounce = Math.sin(time * 2) * 0.02;
         
-        // Apply bounce to the saved Y position instead of fixed -1.5
-        this.carGroup.position.y = savedPosition.y + bounce;
+        // Apply bounce to the cached Y position
+        this.carGroup.position.y = this.cachedPosition.y + bounce;
         
-        // Keep X and Z at their saved positions
-        this.carGroup.position.x = savedPosition.x;
-        this.carGroup.position.z = savedPosition.z;
+        // Keep X and Z at their cached positions
+        this.carGroup.position.x = this.cachedPosition.x;
+        this.carGroup.position.z = this.cachedPosition.z;
     }
     
     // Load STL car model
