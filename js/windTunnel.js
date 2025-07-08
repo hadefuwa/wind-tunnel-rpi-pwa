@@ -116,25 +116,98 @@ class WindTunnelApp {
     setupTunnel() {
         console.log('Setting up wind tunnel...');
         
-        // Create tunnel walls (transparent box)
-        const tunnelGeometry = new THREE.BoxGeometry(20, 8, 8);
-        const tunnelMaterial = new THREE.MeshBasicMaterial({ 
-            color: 0x333333,
-            transparent: true,
-            opacity: 0.1,
-            wireframe: true
-        });
-        
-        const tunnel = new THREE.Mesh(tunnelGeometry, tunnelMaterial);
-        this.scene.add(tunnel);
-        
-        // Create grid floor
-        const gridHelper = new THREE.GridHelper(20, 20, 0x444444, 0x444444);
-        gridHelper.position.y = -3;
-        this.scene.add(gridHelper);
+        // Create rectangular test section (more realistic wind tunnel)
+        this.createTestSection();
         
         // Create wind direction indicators
         this.createWindIndicators();
+    }
+    
+    // Create a more realistic rectangular test section
+    createTestSection() {
+        console.log('Creating rectangular test section...');
+        
+        // Test section dimensions (more rectangular, better for STL positioning)
+        const width = 8;   // Width of test section
+        const height = 6;  // Height of test section  
+        const length = 12; // Length of test section
+        
+        // Create test section walls (transparent)
+        const wallMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0x2196F3,
+            transparent: true,
+            opacity: 0.15,
+            side: THREE.DoubleSide
+        });
+        
+        // Floor
+        const floorGeometry = new THREE.PlaneGeometry(length, width);
+        const floor = new THREE.Mesh(floorGeometry, wallMaterial);
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = -height / 2;
+        this.scene.add(floor);
+        
+        // Ceiling
+        const ceiling = new THREE.Mesh(floorGeometry, wallMaterial);
+        ceiling.rotation.x = Math.PI / 2;
+        ceiling.position.y = height / 2;
+        this.scene.add(ceiling);
+        
+        // Left wall
+        const wallGeometry = new THREE.PlaneGeometry(length, height);
+        const leftWall = new THREE.Mesh(wallGeometry, wallMaterial);
+        leftWall.rotation.y = Math.PI / 2;
+        leftWall.position.z = -width / 2;
+        this.scene.add(leftWall);
+        
+        // Right wall
+        const rightWall = new THREE.Mesh(wallGeometry, wallMaterial);
+        rightWall.rotation.y = -Math.PI / 2;
+        rightWall.position.z = width / 2;
+        this.scene.add(rightWall);
+        
+        // Create test section grid on floor for reference
+        const gridHelper = new THREE.GridHelper(length, 12, 0x444444, 0x222222);
+        gridHelper.position.y = -height / 2 + 0.01; // Slightly above floor
+        this.scene.add(gridHelper);
+        
+        // Create center reference lines
+        this.createCenterLines(length, width, height);
+        
+        console.log('Rectangular test section created');
+    }
+    
+    // Create center reference lines to help with STL positioning
+    createCenterLines(length, width, height) {
+        const lineMaterial = new THREE.LineBasicMaterial({ 
+            color: 0xff0000,
+            transparent: true,
+            opacity: 0.6
+        });
+        
+        // Center line along length (X-axis)
+        const centerLineGeometry = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(-length/2, -height/2 + 0.02, 0),
+            new THREE.Vector3(length/2, -height/2 + 0.02, 0)
+        ]);
+        const centerLine = new THREE.Line(centerLineGeometry, lineMaterial);
+        this.scene.add(centerLine);
+        
+        // Center line along width (Z-axis)
+        const crossLineGeometry = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(0, -height/2 + 0.02, -width/2),
+            new THREE.Vector3(0, -height/2 + 0.02, width/2)
+        ]);
+        const crossLine = new THREE.Line(crossLineGeometry, lineMaterial);
+        this.scene.add(crossLine);
+        
+        // Vertical center line (Y-axis)
+        const verticalLineGeometry = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(0, -height/2, 0),
+            new THREE.Vector3(0, height/2, 0)
+        ]);
+        const verticalLine = new THREE.Line(verticalLineGeometry, lineMaterial);
+        this.scene.add(verticalLine);
     }
     
     // Create wind direction indicators
@@ -257,17 +330,17 @@ class WindTunnelApp {
         this.animateCamera(targetPosition);
     }
     
-    // Get camera position for different views
+    // Get camera position for different views (updated for rectangular test section)
     getCameraPosition(viewName) {
         switch (viewName) {
             case 'front':
-                return { x: 0, y: 0, z: 10 };
+                return { x: 0, y: 0, z: 8 };  // Closer for better view of rectangular section
             case 'side':
-                return { x: 12, y: 0, z: 0 };
+                return { x: 10, y: 0, z: 0 }; // Adjusted for new dimensions
             case 'top':
-                return { x: 0, y: 12, z: 0 };
+                return { x: 0, y: 10, z: 0 }; // Adjusted for new dimensions
             default:
-                return { x: 0, y: 0, z: 10 };
+                return { x: 0, y: 0, z: 8 };
         }
     }
     

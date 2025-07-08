@@ -173,6 +173,9 @@ function setupControls() {
     
     // STL setup is now handled by the setup page
     
+    // Refresh settings button
+    setupRefreshButton();
+    
     // Camera view buttons
     setupCameraButtons();
 }
@@ -244,6 +247,47 @@ function setupSTLUpload() {
 // STL rotation controls are now handled by the setup page
 
 // STL position controls are now handled by the setup page
+
+// Set up refresh settings button
+function setupRefreshButton() {
+    console.log('Setting up refresh button...');
+    
+    const refreshBtn = document.getElementById('refreshSettings');
+    
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            console.log('Refreshing settings...');
+            
+            // Visual feedback
+            this.classList.add('button-pressed');
+            this.textContent = '🔄 Refreshing...';
+            
+            // Reload the current car model with saved settings
+            if (windTunnelApp && windTunnelApp.carModel) {
+                const currentCarType = windTunnelApp.carModel.getCurrentCarType();
+                
+                // Force update cached position
+                windTunnelApp.carModel.updateCachedPosition();
+                
+                // Recreate the car with fresh settings
+                windTunnelApp.carModel.setCarType(currentCarType);
+                
+                // Show notification
+                showNotification('Settings refreshed successfully!', 'success');
+                
+                console.log('Settings refreshed for car type:', currentCarType);
+            } else {
+                showNotification('Unable to refresh - wind tunnel not ready', 'error');
+            }
+            
+            // Reset button after delay
+            setTimeout(() => {
+                this.classList.remove('button-pressed');
+                this.textContent = '🔄 Refresh Settings';
+            }, 1000);
+        });
+    }
+}
 
 // Set up camera view buttons
 function setupCameraButtons() {

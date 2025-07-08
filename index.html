@@ -96,6 +96,15 @@
                     </div>
                 </div>
                 
+                <!-- Refresh Settings Button -->
+                <div class="control-section">
+                    <h3>Refresh Settings</h3>
+                    <div class="refresh-info">
+                        <p>Reload your saved STL position and rotation settings.</p>
+                        <button id="refreshSettings" class="refresh-btn">🔄 Refresh Settings</button>
+                    </div>
+                </div>
+                
                 <!-- Camera View Controls -->
                 <div class="control-section">
                     <h3>Camera View</h3>
@@ -200,17 +209,17 @@
                         <div class="position-controls-large">
                             <div class="position-axis-large">
                                 <label>Height (Y-Axis)</label>
-                                <input type="range" id="positionYSetup" min="-5" max="2" value="-1.5" step="0.1" class="position-slider-large">
-                                <span id="positionYValueSetup" class="position-value-large">-1.5</span>
+                                <input type="range" id="positionYSetup" min="-3" max="3" value="-2" step="0.1" class="position-slider-large">
+                                <span id="positionYValueSetup" class="position-value-large">-2.0</span>
                             </div>
                             <div class="position-axis-large">
                                 <label>Forward/Back (Z-Axis)</label>
-                                <input type="range" id="positionZSetup" min="-3" max="3" value="0" step="0.1" class="position-slider-large">
+                                <input type="range" id="positionZSetup" min="-4" max="4" value="0" step="0.1" class="position-slider-large">
                                 <span id="positionZValueSetup" class="position-value-large">0.0</span>
                             </div>
                             <div class="position-axis-large">
                                 <label>Left/Right (X-Axis)</label>
-                                <input type="range" id="positionXSetup" min="-3" max="3" value="0" step="0.1" class="position-slider-large">
+                                <input type="range" id="positionXSetup" min="-6" max="6" value="0" step="0.1" class="position-slider-large">
                                 <span id="positionXValueSetup" class="position-value-large">0.0</span>
                             </div>
                         </div>

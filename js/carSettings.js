@@ -11,7 +11,7 @@ class CarSettingsStorage {
         // Storage key for localStorage
         this.storageKey = 'windTunnelCarSettings';
         
-        // Default settings
+        // Default settings (updated for rectangular test section)
         this.defaultSettings = {
             rotations: {
                 f1: { x: 0, y: 90, z: 0 }, // F1 car typically needs 90° Y rotation
@@ -22,12 +22,12 @@ class CarSettingsStorage {
                 custom: { x: 0, y: 0, z: 0 }
             },
             positions: {
-                f1: { x: 0, y: -1.5, z: 0 },
-                sedan: { x: 0, y: -1.5, z: 0 },
-                sports: { x: 0, y: -1.5, z: 0 },
-                suv: { x: 0, y: -1.5, z: 0 },
-                truck: { x: 0, y: -1.5, z: 0 },
-                custom: { x: 0, y: -1.5, z: 0 }
+                f1: { x: 0, y: -2, z: 0 },      // Positioned on floor of new test section
+                sedan: { x: 0, y: -2, z: 0 },   // Floor is at y = -3, car bottom at y = -2
+                sports: { x: 0, y: -2, z: 0 },
+                suv: { x: 0, y: -2, z: 0 },
+                truck: { x: 0, y: -2, z: 0 },
+                custom: { x: 0, y: -2, z: 0 }
             },
             lastModified: new Date().toISOString()
         };
@@ -78,7 +78,7 @@ class CarSettingsStorage {
             }
             
             if (!this.settings.positions[carType]) {
-                this.settings.positions[carType] = { x: 0, y: -1.5, z: 0 };
+                this.settings.positions[carType] = { x: 0, y: -2, z: 0 };
             }
         });
         
@@ -128,7 +128,7 @@ class CarSettingsStorage {
             return this.settings.positions[carType];
         } else {
             // Return default position
-            return { x: 0, y: -1.5, z: 0 };
+            return { x: 0, y: -2, z: 0 };
         }
     }
     
@@ -140,7 +140,7 @@ class CarSettingsStorage {
         
         this.settings.positions[carType] = {
             x: position.x || 0,
-            y: position.y || -1.5,
+            y: position.y || -2,
             z: position.z || 0
         };
         
@@ -157,7 +157,7 @@ class CarSettingsStorage {
     
     // Reset position for a specific car type to default
     resetPosition(carType) {
-        this.setPosition(carType, { x: 0, y: -1.5, z: 0 });
+        this.setPosition(carType, { x: 0, y: -2, z: 0 });
         console.log(`Position reset for ${carType}`);
     }
     
