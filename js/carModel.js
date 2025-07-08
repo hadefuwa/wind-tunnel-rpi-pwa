@@ -507,12 +507,20 @@ class CarModel {
     setPosition(x, y, z) {
         if (!this.carGroup) return;
         
-        this.carGroup.position.set(x, y, z);
+        // Enforce minimum Y position to prevent car from going under the floor
+        // Floor is at Y=0, so car should never go below Y=0
+        const minY = 0;
+        const constrainedY = Math.max(minY, y);
+        
+        this.carGroup.position.set(x, constrainedY, z);
         
         // Update cached position when position is set directly
-        this.cachedPosition = { x, y, z };
+        this.cachedPosition = { x, y: constrainedY, z };
         
-        console.log('Car position set to:', x, y, z);
+        console.log('Car position set to:', x, constrainedY, z);
+        if (constrainedY !== y) {
+            console.log('Y position constrained from', y, 'to', constrainedY, 'to prevent going under floor');
+        }
     }
     
     // Add racing stripes for visual appeal
@@ -580,16 +588,18 @@ class CarModel {
         // If position was manually set, don't apply bounce animation
         if (this.positionManuallySet) {
             // Keep all positions at their cached values without animation
+            // But enforce minimum Y position to prevent going under floor
             this.carGroup.position.x = this.cachedPosition.x;
-            this.carGroup.position.y = this.cachedPosition.y;
+            this.carGroup.position.y = Math.max(0, this.cachedPosition.y);
             this.carGroup.position.z = this.cachedPosition.z;
         } else {
             // Apply subtle bouncing motion relative to cached position (default behavior)
             const time = currentTime * 0.001;
             const bounce = Math.sin(time * 2) * 0.02;
             
-            // Apply bounce to the cached Y position
-            this.carGroup.position.y = this.cachedPosition.y + bounce;
+            // Apply bounce to the cached Y position, but ensure it doesn't go below floor
+            const animatedY = this.cachedPosition.y + bounce;
+            this.carGroup.position.y = Math.max(0, animatedY);
             
             // Keep X and Z at their cached positions
             this.carGroup.position.x = this.cachedPosition.x;

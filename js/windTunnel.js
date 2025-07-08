@@ -573,8 +573,8 @@ class WindTunnelApp {
         return {
             minX: -6,  // 12 wide total (-6 to +6)
             maxX: 6,
-            minY: -2,  // 4 high total (-2 to +2)
-            maxY: 2,
+            minY: 0,   // Floor is at Y=0, so minimum Y should be 0 (on the floor)
+            maxY: 4,   // 4 high total (0 to +4)
             minZ: -3,  // 6 deep total (-3 to +3)
             maxZ: 3
         };
