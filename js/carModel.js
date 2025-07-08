@@ -16,6 +16,7 @@ class CarModel {
         this.settingsStorage = new CarSettingsStorage(); // Initialize settings storage
         this.currentRotation = { x: 0, y: 0, z: 0 }; // Track current rotation
         this.cachedPosition = null; // Cache position for animation
+        this.positionManuallySet = false; // Track if position was manually set
         
         // Define different car types with their characteristics
         this.carTypes = {
@@ -419,7 +420,17 @@ class CarModel {
         // Apply saved position and rotation for this car type
         if (this.settingsStorage) {
             const savedPosition = this.settingsStorage.getPosition(carType);
+            const defaultPosition = { x: 0, y: -1.5, z: 0 };
+            
+            // Check if position was manually saved (different from default)
+            const isManuallySet = savedPosition.x !== defaultPosition.x || 
+                                 savedPosition.y !== defaultPosition.y || 
+                                 savedPosition.z !== defaultPosition.z;
+            
             this.setPosition(savedPosition.x, savedPosition.y, savedPosition.z);
+            
+            // Only mark as manually set if it's not the default position
+            this.positionManuallySet = isManuallySet;
             
             // Apply saved rotation if this is an STL car
             if (this.carTypes[carType].isSTL) {
@@ -456,6 +467,9 @@ class CarModel {
         
         // Update cached position
         this.updateCachedPosition();
+        
+        // Mark position as manually set
+        this.positionManuallySet = true;
     }
     
     // Get all available car types
@@ -563,16 +577,24 @@ class CarModel {
             this.updateCachedPosition();
         }
         
-        // Add subtle bouncing motion relative to cached position
-        const time = currentTime * 0.001;
-        const bounce = Math.sin(time * 2) * 0.02;
-        
-        // Apply bounce to the cached Y position
-        this.carGroup.position.y = this.cachedPosition.y + bounce;
-        
-        // Keep X and Z at their cached positions
-        this.carGroup.position.x = this.cachedPosition.x;
-        this.carGroup.position.z = this.cachedPosition.z;
+        // If position was manually set, don't apply bounce animation
+        if (this.positionManuallySet) {
+            // Keep all positions at their cached values without animation
+            this.carGroup.position.x = this.cachedPosition.x;
+            this.carGroup.position.y = this.cachedPosition.y;
+            this.carGroup.position.z = this.cachedPosition.z;
+        } else {
+            // Apply subtle bouncing motion relative to cached position (default behavior)
+            const time = currentTime * 0.001;
+            const bounce = Math.sin(time * 2) * 0.02;
+            
+            // Apply bounce to the cached Y position
+            this.carGroup.position.y = this.cachedPosition.y + bounce;
+            
+            // Keep X and Z at their cached positions
+            this.carGroup.position.x = this.cachedPosition.x;
+            this.carGroup.position.z = this.cachedPosition.z;
+        }
     }
     
     // Load STL car model
