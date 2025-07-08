@@ -65,6 +65,12 @@ function setupWindTunnel() {
     // Create a new WindTunnelApp instance
     windTunnelApp = new WindTunnelApp(canvas);
     
+    // Expose carManager globally for setup page
+    window.carManager = windTunnelApp.carModel;
+    
+    // Expose carSettings globally for setup page
+    window.carSettings = windTunnelApp.carModel.settingsStorage;
+    
     // Hide loading screen after setup
     setTimeout(function() {
         loadingScreen.style.display = 'none';
@@ -128,6 +134,25 @@ function setupControls() {
     carTypeSelect.addEventListener('change', function() {
         appState.carType = this.value;
         
+        // Show/hide STL upload section based on selection
+        const stlUploadSection = document.getElementById('stlUploadSection');
+        const stlSetupNavSection = document.getElementById('stlSetupNavSection');
+        
+        if (this.value === 'custom') {
+            stlUploadSection.style.display = 'block';
+            stlSetupNavSection.style.display = 'none'; // Hide until STL is loaded
+        } else {
+            stlUploadSection.style.display = 'none';
+            
+            // Show STL setup navigation for STL car types
+            const carTypes = windTunnelApp?.carModel?.carTypes || {};
+            if (carTypes[this.value]?.isSTL) {
+                stlSetupNavSection.style.display = 'block';
+            } else {
+                stlSetupNavSection.style.display = 'none';
+            }
+        }
+        
         // Update the wind tunnel
         if (windTunnelApp) {
             windTunnelApp.setCarType(appState.carType);
@@ -143,9 +168,82 @@ function setupControls() {
         console.log('Car type changed to:', appState.carType);
     });
     
+    // STL file upload
+    setupSTLUpload();
+    
+    // STL setup is now handled by the setup page
+    
     // Camera view buttons
     setupCameraButtons();
 }
+
+// Set up STL file upload functionality
+function setupSTLUpload() {
+    console.log('Setting up STL upload...');
+    
+    const stlFileInput = document.getElementById('stlFileInput');
+    const uploadStatus = document.getElementById('uploadStatus');
+    
+    if (stlFileInput && uploadStatus) {
+        stlFileInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            
+            if (file) {
+                console.log('STL file selected:', file.name);
+                
+                // Check if file is STL
+                if (!file.name.toLowerCase().endsWith('.stl')) {
+                    uploadStatus.textContent = 'Please select an STL file';
+                    uploadStatus.className = 'upload-status error';
+                    return;
+                }
+                
+                // Update status
+                uploadStatus.textContent = 'Loading ' + file.name + '...';
+                uploadStatus.className = 'upload-status';
+                
+                // Load the STL file
+                if (windTunnelApp && windTunnelApp.carModel) {
+                    windTunnelApp.carModel.loadCustomSTL(
+                        file,
+                        (geometry) => {
+                            // Success callback
+                            uploadStatus.textContent = 'Loaded: ' + file.name;
+                            uploadStatus.className = 'upload-status success';
+                            
+                            // Update car description
+                            updateCarDescription('custom');
+                            
+                            // Show STL setup navigation for custom STL
+                            const stlSetupNavSection = document.getElementById('stlSetupNavSection');
+                            stlSetupNavSection.style.display = 'block';
+                            
+                            console.log('Custom STL loaded successfully');
+                        },
+                        (error) => {
+                            // Error callback
+                            uploadStatus.textContent = 'Error loading ' + file.name;
+                            uploadStatus.className = 'upload-status error';
+                            
+                            console.error('Error loading custom STL:', error);
+                            showNotification('Error loading STL file', 'error');
+                        }
+                    );
+                } else {
+                    uploadStatus.textContent = 'Wind tunnel not ready';
+                    uploadStatus.className = 'upload-status error';
+                }
+            } else {
+                uploadStatus.textContent = 'No file selected';
+                uploadStatus.className = 'upload-status';
+            }
+        });
+    }
+}
+
+// STL rotation controls are now handled by the setup page
+
+// STL position controls are now handled by the setup page
 
 // Set up camera view buttons
 function setupCameraButtons() {
@@ -202,11 +300,12 @@ function updateCarDescription(carType) {
     const carDescription = document.getElementById('carDescription');
     
     const descriptions = {
-        f1: "Formula 1 racing car with maximum downforce",
+        f1: "Formula 1 racing car with maximum downforce (STL model)",
         sedan: "Standard passenger car with good aerodynamics",
         sports: "Low-profile car with aggressive aerodynamics",
         suv: "Tall vehicle with higher drag coefficient",
-        truck: "Large vehicle with poor aerodynamics"
+        truck: "Large vehicle with poor aerodynamics",
+        custom: "Your custom uploaded STL car model"
     };
     
     if (carDescription && descriptions[carType]) {
@@ -426,51 +525,66 @@ function updateFPS() {
     }
 }
 
-// Update the real-time data display
-function updateDataDisplay(dragForce, liftForce, pressure) {
-    const dragElement = document.getElementById('dragValue');
-    const liftElement = document.getElementById('liftValue');
-    const pressureElement = document.getElementById('pressureValue');
-    
-    const dragBar = document.getElementById('dragBar');
-    const liftBar = document.getElementById('liftBar');
-    const pressureBar = document.getElementById('pressureBar');
-    
-    if (dragElement) {
-        dragElement.textContent = dragForce.toFixed(2);
-        dragElement.classList.add('updating');
-        setTimeout(() => dragElement.classList.remove('updating'), 500);
+// Update the real-time data display with all parameters
+function updateDataDisplay(dragForce, liftForce, pressure, allForces) {
+    // Helper function to update a parameter
+    function updateParameter(elementId, barId, value, precision = 2, maxValue = 100) {
+        const element = document.getElementById(elementId);
+        const bar = document.getElementById(barId);
+        
+        if (element) {
+            element.textContent = value.toFixed(precision);
+            element.classList.add('updating');
+            setTimeout(() => element.classList.remove('updating'), 500);
+        }
+        
+        if (bar) {
+            const percent = Math.min(Math.max(Math.abs(value) / maxValue * 100, 5), 100);
+            bar.style.width = percent + '%';
+        }
     }
     
-    if (liftElement) {
-        liftElement.textContent = liftForce.toFixed(2);
-        liftElement.classList.add('updating');
-        setTimeout(() => liftElement.classList.remove('updating'), 500);
-    }
+    // Update primary forces
+    updateParameter('dragValue', 'dragBar', dragForce, 2, 3);
+    updateParameter('liftValue', 'liftBar', liftForce, 2, 2);
+    updateParameter('pressureValue', 'pressureBar', pressure, 1, 8);
     
-    if (pressureElement) {
-        pressureElement.textContent = pressure.toFixed(1);
-        pressureElement.classList.add('updating');
-        setTimeout(() => pressureElement.classList.remove('updating'), 500);
-    }
-    
-    // Update progress bars with better scaling
-    if (dragBar) {
-        // Scale drag: 0-3N = 0-100%
-        const dragPercent = Math.min(Math.max(Math.abs(dragForce) / 3.0 * 100, 5), 100);
-        dragBar.style.width = dragPercent + '%';
-    }
-    
-    if (liftBar) {
-        // Scale lift: -2 to 2N = 0-100% (absolute value)
-        const liftPercent = Math.min(Math.max(Math.abs(liftForce) / 2.0 * 100, 5), 100);
-        liftBar.style.width = liftPercent + '%';
-    }
-    
-    if (pressureBar) {
-        // Scale pressure: 0-8kPa = 0-100%
-        const pressurePercent = Math.min(Math.max(pressure / 8.0 * 100, 5), 100);
-        pressureBar.style.width = pressurePercent + '%';
+    // Update new parameters if available
+    if (allForces) {
+        // Forces
+        updateParameter('downforceValue', 'downforceBar', allForces.downforce || 0, 2, 2);
+        
+        // Coefficients
+        updateParameter('cdValue', 'cdBar', allForces.dragCoefficient || 0, 3, 1);
+        updateParameter('clValue', 'clBar', allForces.liftCoefficient || 0, 3, 1);
+        
+        // Pressures
+        updateParameter('dynamicPressureValue', 'dynamicPressureBar', allForces.dynamicPressure || 0, 2, 5);
+        updateParameter('stagnationPressureValue', 'stagnationPressureBar', allForces.stagnationPressure || 0, 1, 110);
+        
+        // Flow properties
+        updateParameter('velocityValue', 'velocityBar', allForces.velocity || 0, 1, 50);
+        
+        // Reynolds number (format as millions)
+        const reynoldsElement = document.getElementById('reynoldsValue');
+        const reynoldsBar = document.getElementById('reynoldsBar');
+        if (reynoldsElement && allForces.reynoldsNumber) {
+            const reynoldsMillions = allForces.reynoldsNumber / 1000000;
+            reynoldsElement.textContent = reynoldsMillions.toFixed(1) + 'M';
+            reynoldsElement.classList.add('updating');
+            setTimeout(() => reynoldsElement.classList.remove('updating'), 500);
+        }
+        if (reynoldsBar && allForces.reynoldsNumber) {
+            const reynoldsPercent = Math.min(Math.max(allForces.reynoldsNumber / 10000000 * 100, 5), 100);
+            reynoldsBar.style.width = reynoldsPercent + '%';
+        }
+        
+        // Car properties
+        updateParameter('frontalAreaValue', 'frontalAreaBar', allForces.frontalArea || 0, 1, 4);
+        updateParameter('airDensityValue', 'airDensityBar', allForces.airDensity || 0, 3, 2);
+        
+        // Performance
+        updateParameter('efficiencyValue', 'efficiencyBar', allForces.efficiency || 0, 0, 100);
     }
 }
 

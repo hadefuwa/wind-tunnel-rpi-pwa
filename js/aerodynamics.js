@@ -36,7 +36,7 @@ class AerodynamicsCalculator {
         }
     }
     
-    // Main function to calculate all forces
+    // Main function to calculate all forces and parameters
     calculateForces(windSpeedMPH, carAngleDegrees) {
         // Convert wind speed from MPH to m/s
         const windSpeedMS = windSpeedMPH * 0.44704;
@@ -55,10 +55,45 @@ class AerodynamicsCalculator {
         const liftForce = this.calculateLiftForce(dynamicPressure, coefficients.lift);
         const pressure = this.calculatePressure(dynamicPressure, coefficients.pressure);
         
+        // Calculate Reynolds number
+        const reynoldsNumber = this.calculateReynoldsNumber(windSpeedMS);
+        
+        // Calculate stagnation pressure
+        const stagnationPressure = this.calculateStagnationPressure(dynamicPressure);
+        
+        // Calculate downforce (negative lift)
+        const downforce = Math.abs(Math.min(liftForce, 0));
+        
+        // Calculate efficiency rating
+        const efficiencyRating = this.calculateEfficiencyRating(windSpeedMPH, carAngleDegrees);
+        
         return {
+            // Primary forces
             drag: dragForce,
             lift: liftForce,
+            downforce: downforce,
+            
+            // Coefficients
+            dragCoefficient: coefficients.drag,
+            liftCoefficient: coefficients.lift,
+            
+            // Pressures
             pressure: pressure / 1000, // Convert to kPa for display
+            dynamicPressure: dynamicPressure / 1000, // Convert to kPa
+            stagnationPressure: stagnationPressure / 1000, // Convert to kPa
+            
+            // Flow properties
+            velocity: windSpeedMS,
+            reynoldsNumber: reynoldsNumber,
+            
+            // Car properties
+            frontalArea: this.carFrontalArea,
+            airDensity: this.airDensity,
+            
+            // Performance
+            efficiency: efficiencyRating,
+            
+            // Original values for compatibility
             windSpeed: windSpeedMS,
             angle: carAngleDegrees
         };
@@ -130,6 +165,54 @@ class AerodynamicsCalculator {
         const reynoldsNumber = (this.airDensity * windSpeedMS * this.carLength) / this.airViscosity;
         
         return reynoldsNumber;
+    }
+    
+    // Calculate stagnation pressure (total pressure)
+    calculateStagnationPressure(dynamicPressure) {
+        // Formula: P_stagnation = P_static + P_dynamic
+        // Using standard atmospheric pressure (101.325 kPa)
+        const staticPressure = 101325; // Pa (standard atmospheric pressure)
+        const stagnationPressure = staticPressure + dynamicPressure;
+        
+        return stagnationPressure;
+    }
+    
+    // Calculate efficiency rating (performance score)
+    calculateEfficiencyRating(windSpeedMPH, carAngleDegrees) {
+        // Calculate basic values without calling calculateForces to avoid recursion
+        const windSpeedMS = windSpeedMPH * 0.44704;
+        const carAngleRadians = carAngleDegrees * Math.PI / 180;
+        const dynamicPressure = this.calculateDynamicPressure(windSpeedMS);
+        const coefficients = this.calculateCoefficients(carAngleRadians);
+        const dragForce = this.calculateDragForce(dynamicPressure, coefficients.drag);
+        const liftForce = this.calculateLiftForce(dynamicPressure, coefficients.lift);
+        
+        // Start with perfect score
+        let efficiency = 100;
+        
+        // Penalize high drag coefficient
+        if (coefficients.drag > 0.4) {
+            efficiency -= 20;
+        } else if (coefficients.drag > 0.3) {
+            efficiency -= 10;
+        }
+        
+        // Reward good downforce (negative lift)
+        if (liftForce < -0.5) {
+            efficiency += 10;
+        } else if (liftForce > 0.2) {
+            efficiency -= 15;
+        }
+        
+        // Penalize large angles
+        if (Math.abs(carAngleDegrees) > 15) {
+            efficiency -= 20;
+        } else if (Math.abs(carAngleDegrees) > 10) {
+            efficiency -= 10;
+        }
+        
+        // Ensure efficiency stays within 0-100 range
+        return Math.max(0, Math.min(100, efficiency));
     }
     
     // Simulate wind pressure around the car

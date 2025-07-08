@@ -11,43 +11,82 @@ class CarModel {
         this.angle = 0;
         this.scale = 1;
         this.currentCarType = 'f1'; // F1 car as default!
+        this.stlLoader = new STLLoader(); // Initialize STL loader
+        this.customSTLGeometry = null; // Store custom STL geometry
+        this.settingsStorage = new CarSettingsStorage(); // Initialize settings storage
+        this.currentRotation = { x: 0, y: 0, z: 0 }; // Track current rotation
         
         // Define different car types with their characteristics
         this.carTypes = {
             f1: { 
                 drag: 0.28, 
                 lift: -0.8, 
-                name: "F1 Race Car",
+                name: "F1 Race Car (STL)",
                 color: 0xff0000,
-                description: "Formula 1 racing car with maximum downforce"
+                description: "Formula 1 racing car with maximum downforce",
+                dragCoefficient: 0.7,
+                liftCoefficient: -2.5,
+                frontalArea: 1.8,
+                weight: 740,
+                isSTL: true,
+                stlPath: 'assets/stl-files/f1.stl'
             },
             sedan: { 
                 drag: 0.25, 
                 lift: -0.1, 
                 name: "Sedan",
                 color: 0xff4444,
-                description: "Standard passenger car with good aerodynamics"
+                description: "Standard passenger car with good aerodynamics",
+                dragCoefficient: 0.3,
+                liftCoefficient: 0.1,
+                frontalArea: 2.2,
+                weight: 1500
             },
             sports: { 
                 drag: 0.35, 
                 lift: -0.3, 
                 name: "Sports Car",
                 color: 0xff6600,
-                description: "Low-profile car with aggressive aerodynamics"
+                description: "Low-profile car with aggressive aerodynamics",
+                dragCoefficient: 0.35,
+                liftCoefficient: -0.2,
+                frontalArea: 2.0,
+                weight: 1300
             },
             suv: { 
                 drag: 0.45, 
                 lift: 0.1, 
                 name: "SUV",
                 color: 0x0066ff,
-                description: "Tall vehicle with higher drag coefficient"
+                description: "Tall vehicle with higher drag coefficient",
+                dragCoefficient: 0.45,
+                liftCoefficient: 0.2,
+                frontalArea: 2.8,
+                weight: 2200
             },
             truck: { 
                 drag: 0.55, 
                 lift: 0.2, 
                 name: "Truck",
                 color: 0x00aa00,
-                description: "Large vehicle with poor aerodynamics"
+                description: "Large vehicle with poor aerodynamics",
+                dragCoefficient: 0.8,
+                liftCoefficient: 0.1,
+                frontalArea: 3.5,
+                weight: 3500
+            },
+            custom: {
+                drag: 0.35,
+                lift: -0.2,
+                name: "Custom STL Model",
+                color: 0x00ffff,
+                description: "Your custom uploaded STL car model",
+                dragCoefficient: 0.35,
+                liftCoefficient: -0.2,
+                frontalArea: 2.0,
+                weight: 1400,
+                isSTL: true,
+                stlPath: null
             }
         };
         
@@ -57,22 +96,35 @@ class CarModel {
         console.log('Car Model created successfully!');
     }
     
-    // Create the car using basic shapes
+    // Create the car using basic shapes or STL
     createCar() {
-        console.log('Building car from basic shapes...');
+        console.log('Building car...');
         
         // Create a group to hold all car parts
         this.carGroup = new THREE.Group();
         
-        // Create different parts of the car based on type
-        this.createCarBody();
-        this.createCarRoof();
-        this.createWheels();
-        this.createWindshield();
-        this.createSpoiler();
+        const carType = this.carTypes[this.currentCarType];
         
-        // Position the car in the center
-        this.carGroup.position.set(0, -1.5, 0);
+        // Check if this car type uses STL
+        if (carType.isSTL) {
+            console.log('Loading STL car model...');
+            this.loadSTLCar();
+        } else {
+            console.log('Building car from basic shapes...');
+            // Create different parts of the car based on type
+            this.createCarBody();
+            this.createCarRoof();
+            this.createWheels();
+            this.createWindshield();
+            this.createSpoiler();
+        }
+        
+        // Position the car using saved settings or default
+        const savedPosition = this.settingsStorage ? 
+            this.settingsStorage.getPosition(this.currentCarType) : 
+            { x: 0, y: -1.5, z: 0 };
+        
+        this.carGroup.position.set(savedPosition.x, savedPosition.y, savedPosition.z);
         
         console.log('Car assembly complete!');
     }
@@ -362,7 +414,20 @@ class CarModel {
         // Restore settings
         this.setAngle(currentAngle);
         this.setScale(currentScale);
-        this.setPosition(currentPosition.x, currentPosition.y, currentPosition.z);
+        
+        // Apply saved position and rotation for this car type
+        if (this.settingsStorage) {
+            const savedPosition = this.settingsStorage.getPosition(carType);
+            this.setPosition(savedPosition.x, savedPosition.y, savedPosition.z);
+            
+            // Apply saved rotation if this is an STL car
+            if (this.carTypes[carType].isSTL) {
+                const savedRotation = this.settingsStorage.getRotation(carType);
+                this.setSTLRotation(savedRotation);
+            }
+        } else {
+            this.setPosition(currentPosition.x, currentPosition.y, currentPosition.z);
+        }
         
         console.log('Car type switched to:', this.carTypes[carType].name);
         
@@ -373,6 +438,15 @@ class CarModel {
     // Get current car type
     getCurrentCarType() {
         return this.currentCarType;
+    }
+    
+    // Methods for the setup page to use
+    applyRotation(rotationData) {
+        this.setSTLRotation(rotationData);
+    }
+    
+    applyPosition(positionData) {
+        this.setPosition(positionData.x, positionData.y, positionData.z);
     }
     
     // Get all available car types
@@ -465,11 +539,212 @@ class CarModel {
     animate(currentTime) {
         if (!this.carGroup) return;
         
-        // Add subtle bouncing motion
+        // Get the saved position for this car type
+        const savedPosition = this.settingsStorage ? 
+            this.settingsStorage.getPosition(this.currentCarType) : 
+            { x: 0, y: -1.5, z: 0 };
+        
+        // Add subtle bouncing motion relative to saved position
         const time = currentTime * 0.001;
         const bounce = Math.sin(time * 2) * 0.02;
         
-        this.carGroup.position.y = -1.5 + bounce;
+        // Apply bounce to the saved Y position instead of fixed -1.5
+        this.carGroup.position.y = savedPosition.y + bounce;
+        
+        // Keep X and Z at their saved positions
+        this.carGroup.position.x = savedPosition.x;
+        this.carGroup.position.z = savedPosition.z;
+    }
+    
+    // Load STL car model
+    loadSTLCar() {
+        const carType = this.carTypes[this.currentCarType];
+        
+        if (carType.stlPath) {
+            console.log('Loading STL file:', carType.stlPath);
+            
+            this.stlLoader.load(
+                carType.stlPath,
+                (geometry) => {
+                    console.log('STL file loaded successfully');
+                    this.createSTLMesh(geometry);
+                },
+                (progress) => {
+                    console.log('Loading progress:', progress);
+                },
+                (error) => {
+                    console.error('Error loading STL file:', error);
+                    // Fallback to basic shapes if STL fails
+                    this.createBasicCarFallback();
+                }
+            );
+        } else if (this.customSTLGeometry) {
+            console.log('Using custom STL geometry');
+            this.createSTLMesh(this.customSTLGeometry);
+        } else {
+            console.log('No STL file specified, using basic shapes');
+            this.createBasicCarFallback();
+        }
+    }
+    
+    // Create mesh from STL geometry
+    createSTLMesh(geometry) {
+        console.log('Creating STL mesh...');
+        
+        const carType = this.carTypes[this.currentCarType];
+        
+        // Create material for STL model
+        const material = new THREE.MeshLambertMaterial({
+            color: carType.color,
+            side: THREE.DoubleSide
+        });
+        
+        // Create mesh
+        const stlMesh = new THREE.Mesh(geometry, material);
+        
+        // Scale and position the STL model appropriately
+        this.scaleSTLModel(stlMesh);
+        
+        // Apply saved rotation settings
+        this.applySavedRotation(stlMesh);
+        
+        // Add to car group
+        this.carGroup.add(stlMesh);
+        
+        console.log('STL mesh created and added to car group');
+    }
+    
+    // Scale STL model to appropriate size
+    scaleSTLModel(mesh) {
+        // Calculate bounding box
+        const box = new THREE.Box3().setFromObject(mesh);
+        const size = box.getSize(new THREE.Vector3());
+        
+        // Scale to reasonable car size (approximately 4 units long)
+        const targetLength = 4;
+        const scaleFactor = targetLength / Math.max(size.x, size.y, size.z);
+        
+        mesh.scale.set(scaleFactor, scaleFactor, scaleFactor);
+        
+        // Center the model
+        const center = box.getCenter(new THREE.Vector3());
+        mesh.position.set(-center.x * scaleFactor, -center.y * scaleFactor, -center.z * scaleFactor);
+        
+        console.log('STL model scaled by factor:', scaleFactor);
+    }
+    
+    // Fallback to basic car shapes if STL fails
+    createBasicCarFallback() {
+        console.log('Creating basic car fallback...');
+        
+        // Create basic car parts
+        this.createCarBody();
+        this.createCarRoof();
+        this.createWheels();
+        this.createWindshield();
+        this.createSpoiler();
+        
+        console.log('Basic car fallback created');
+    }
+    
+    // Load custom STL file from user upload
+    loadCustomSTL(file, onSuccess, onError) {
+        console.log('Loading custom STL file:', file.name);
+        
+        this.stlLoader.loadFromFile(
+            file,
+            (geometry) => {
+                console.log('Custom STL file loaded successfully');
+                
+                // Store the custom geometry
+                this.customSTLGeometry = geometry;
+                
+                // Update custom car type
+                this.carTypes.custom.stlPath = file.name;
+                
+                // Switch to custom car type
+                this.setCarType('custom');
+                
+                if (onSuccess) onSuccess(geometry);
+            },
+            (error) => {
+                console.error('Error loading custom STL file:', error);
+                if (onError) onError(error);
+            }
+        );
+    }
+    
+    // Check if current car type uses STL
+    isSTLCar() {
+        return this.carTypes[this.currentCarType].isSTL;
+    }
+    
+    // Apply saved rotation to STL mesh
+    applySavedRotation(mesh) {
+        const savedRotation = this.settingsStorage.getRotation(this.currentCarType);
+        
+        // Convert degrees to radians and apply rotation
+        mesh.rotation.x = (savedRotation.x * Math.PI) / 180;
+        mesh.rotation.y = (savedRotation.y * Math.PI) / 180;
+        mesh.rotation.z = (savedRotation.z * Math.PI) / 180;
+        
+        // Update current rotation tracking
+        this.currentRotation = { ...savedRotation };
+        
+        console.log(`Applied saved rotation for ${this.currentCarType}:`, savedRotation);
+    }
+    
+    // Set STL rotation (in degrees)
+    setSTLRotation(rotationDegrees) {
+        if (!this.carGroup) return;
+        
+        // Find the STL mesh in the car group
+        const stlMesh = this.findSTLMesh();
+        if (!stlMesh) return;
+        
+        // Convert degrees to radians and apply
+        stlMesh.rotation.x = (rotationDegrees.x * Math.PI) / 180;
+        stlMesh.rotation.y = (rotationDegrees.y * Math.PI) / 180;
+        stlMesh.rotation.z = (rotationDegrees.z * Math.PI) / 180;
+        
+        // Update current rotation tracking
+        this.currentRotation = { ...rotationDegrees };
+        
+        console.log('STL rotation set to:', rotationDegrees);
+    }
+    
+    // Get current STL rotation (in degrees)
+    getSTLRotation() {
+        return { ...this.currentRotation };
+    }
+    
+    // Save current rotation to storage
+    saveSTLRotation() {
+        this.settingsStorage.setRotation(this.currentCarType, this.currentRotation);
+        console.log('STL rotation saved for', this.currentCarType);
+    }
+    
+    // Reset STL rotation to default
+    resetSTLRotation() {
+        this.settingsStorage.resetRotation(this.currentCarType);
+        const defaultRotation = this.settingsStorage.getRotation(this.currentCarType);
+        this.setSTLRotation(defaultRotation);
+        console.log('STL rotation reset for', this.currentCarType);
+    }
+    
+    // Find the STL mesh in the car group
+    findSTLMesh() {
+        if (!this.carGroup) return null;
+        
+        // Look for the mesh that was added from STL
+        for (let child of this.carGroup.children) {
+            if (child.isMesh && child.geometry && child.geometry.attributes) {
+                // This is likely our STL mesh
+                return child;
+            }
+        }
+        
+        return null;
     }
     
     // Clean up resources
@@ -483,6 +758,12 @@ class CarModel {
                     object.material.dispose();
                 }
             });
+        }
+        
+        // Clean up custom STL geometry
+        if (this.customSTLGeometry) {
+            this.customSTLGeometry.dispose();
+            this.customSTLGeometry = null;
         }
         
         console.log('Car model disposed');

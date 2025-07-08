@@ -215,9 +215,9 @@ class WindTunnelApp {
         // Calculate forces based on current wind speed, car angle, and car type
         const forces = this.aerodynamicsCalculator.calculateForces(this.windSpeed, this.carAngle, currentCarType);
         
-        // Update the display
+        // Update the display with all parameters
         if (window.WindTunnelMain) {
-            window.WindTunnelMain.updateDataDisplay(forces.drag, forces.lift, forces.pressure);
+            window.WindTunnelMain.updateDataDisplay(forces.drag, forces.lift, forces.pressure, forces);
         }
     }
     

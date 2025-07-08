@@ -15,8 +15,23 @@
 </head>
 <body>
     <div id="app">
-        <!-- Main App Section (Left Side) -->
-        <div id="mainApp" class="main-app-section">
+        <!-- App Menu Bar -->
+        <div id="appMenuBar" class="app-menu-bar">
+            <div class="menu-logo">
+                <span class="menu-icon">🌪️</span>
+                <span class="menu-title">Wind Tunnel</span>
+            </div>
+            <div class="menu-nav">
+                <button id="menuMain" class="menu-btn active">Main</button>
+                <button id="menuSTLSetup" class="menu-btn">STL Setup</button>
+                <button id="menuSettings" class="menu-btn">Settings</button>
+            </div>
+        </div>
+        
+        <!-- Main App Page -->
+        <div id="mainPage" class="app-page active">
+            <!-- Main App Section (Left Side) -->
+            <div id="mainApp" class="main-app-section">
             <!-- Main 3D Canvas -->
             <canvas id="windTunnelCanvas"></canvas>
             
@@ -52,13 +67,33 @@
                 <div class="control-section">
                     <h3>Car Type</h3>
                     <select id="carType" class="control-select">
-                        <option value="f1" selected>F1 Race Car</option>
+                        <option value="f1" selected>F1 Race Car (STL)</option>
                         <option value="sedan">Sedan</option>
                         <option value="sports">Sports Car</option>
                         <option value="suv">SUV</option>
                         <option value="truck">Truck</option>
+                        <option value="custom">Custom STL File</option>
                     </select>
                     <div id="carDescription" class="car-description">Formula 1 racing car with maximum downforce</div>
+                </div>
+                
+                <!-- STL File Upload -->
+                <div class="control-section" id="stlUploadSection" style="display: none;">
+                    <h3>Upload STL File</h3>
+                    <input type="file" id="stlFileInput" accept=".stl" class="file-input">
+                    <div class="upload-info">
+                        <div id="uploadStatus" class="upload-status">No file selected</div>
+                        <div class="upload-help">Select an STL file to load your custom car model</div>
+                    </div>
+                </div>
+                
+                <!-- STL Setup Navigation -->
+                <div class="control-section" id="stlSetupNavSection" style="display: none;">
+                    <h3>STL Model Setup</h3>
+                    <div class="setup-nav-info">
+                        <p>Configure your STL model rotation and position in the dedicated setup page.</p>
+                        <button id="openSTLSetup" class="setup-nav-btn">Open STL Setup</button>
+                    </div>
                 </div>
                 
                 <!-- Camera View Controls -->
@@ -108,6 +143,188 @@
                 <span id="connectionStatus" class="connection-status">●</span>
             </div>
         </div>
+        </div> <!-- End Main Page -->
+        
+        <!-- STL Setup Page -->
+        <div id="stlSetupPage" class="app-page">
+            <div class="setup-page-header">
+                <h1>STL Model Setup</h1>
+                <p>Configure your 3D model rotation, position, and upload settings</p>
+            </div>
+            
+            <div class="setup-page-content">
+                <!-- STL File Upload Section -->
+                <div class="setup-section">
+                    <h2>📁 Upload STL File</h2>
+                    <div class="setup-card">
+                        <input type="file" id="stlFileInputSetup" accept=".stl" class="file-input-large">
+                        <div class="upload-info-large">
+                            <div id="uploadStatusSetup" class="upload-status-large">No file selected</div>
+                            <div class="upload-help-large">Select an STL file to load your custom car model</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Model Rotation Section -->
+                <div class="setup-section">
+                    <h2>🔄 Model Rotation</h2>
+                    <div class="setup-card">
+                        <div class="rotation-controls-large">
+                            <div class="rotation-axis-large">
+                                <label>X-Axis Rotation</label>
+                                <input type="range" id="rotationXSetup" min="-180" max="180" value="0" step="10" class="rotation-slider-large">
+                                <span id="rotationXValueSetup" class="rotation-value-large">0°</span>
+                            </div>
+                            <div class="rotation-axis-large">
+                                <label>Y-Axis Rotation</label>
+                                <input type="range" id="rotationYSetup" min="-180" max="180" value="0" step="10" class="rotation-slider-large">
+                                <span id="rotationYValueSetup" class="rotation-value-large">0°</span>
+                            </div>
+                            <div class="rotation-axis-large">
+                                <label>Z-Axis Rotation</label>
+                                <input type="range" id="rotationZSetup" min="-180" max="180" value="0" step="10" class="rotation-slider-large">
+                                <span id="rotationZValueSetup" class="rotation-value-large">0°</span>
+                            </div>
+                        </div>
+                        <div class="rotation-buttons-large">
+                            <button id="resetRotationSetup" class="setup-btn">Reset Rotation</button>
+                            <button id="saveRotationSetup" class="setup-btn save-btn">Save Rotation</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Model Position Section -->
+                <div class="setup-section">
+                    <h2>📍 Model Position</h2>
+                    <div class="setup-card">
+                        <div class="position-controls-large">
+                            <div class="position-axis-large">
+                                <label>Height (Y-Axis)</label>
+                                <input type="range" id="positionYSetup" min="-5" max="2" value="-1.5" step="0.1" class="position-slider-large">
+                                <span id="positionYValueSetup" class="position-value-large">-1.5</span>
+                            </div>
+                            <div class="position-axis-large">
+                                <label>Forward/Back (Z-Axis)</label>
+                                <input type="range" id="positionZSetup" min="-3" max="3" value="0" step="0.1" class="position-slider-large">
+                                <span id="positionZValueSetup" class="position-value-large">0.0</span>
+                            </div>
+                            <div class="position-axis-large">
+                                <label>Left/Right (X-Axis)</label>
+                                <input type="range" id="positionXSetup" min="-3" max="3" value="0" step="0.1" class="position-slider-large">
+                                <span id="positionXValueSetup" class="position-value-large">0.0</span>
+                            </div>
+                        </div>
+                        <div class="position-buttons-large">
+                            <button id="resetPositionSetup" class="setup-btn">Reset Position</button>
+                            <button id="savePositionSetup" class="setup-btn save-btn">Save Position</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Model Preview Section -->
+                <div class="setup-section">
+                    <h2>👁️ Model Preview</h2>
+                    <div class="setup-card">
+                        <div class="model-preview">
+                            <canvas id="previewCanvas" width="400" height="300"></canvas>
+                            <div class="preview-info">
+                                <p>Live preview of your STL model with current rotation and position settings</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="setup-actions">
+                    <button id="applySettingsBtn" class="setup-btn apply-btn">Apply to Wind Tunnel</button>
+                    <button id="backToMainBtn" class="setup-btn back-btn">Back to Main</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Settings Page -->
+        <div id="settingsPage" class="app-page">
+            <div class="setup-page-header">
+                <h1>Settings</h1>
+                <p>Configure application preferences and manage car models</p>
+            </div>
+            
+            <div class="setup-page-content">
+                <!-- Model Management Section -->
+                <div class="setup-section">
+                    <h2>🚗 Car Model Management</h2>
+                    <div class="setup-card">
+                        <div class="model-manager">
+                            <div class="model-manager-header">
+                                <p>Manage preloaded car models and their characteristics</p>
+                                <div class="model-manager-actions">
+                                    <button id="addNewModel" class="setup-btn">Add New Model</button>
+                                    <button id="resetAllModels" class="setup-btn">Reset All</button>
+                                </div>
+                            </div>
+                            
+                            <div id="modelList" class="model-list">
+                                <!-- Models will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Application Settings Section -->
+                <div class="setup-section">
+                    <h2>⚙️ Application Settings</h2>
+                    <div class="setup-card">
+                        <div class="settings-grid">
+                            <div class="setting-item">
+                                <label for="enableParticles">Wind Particles</label>
+                                <input type="checkbox" id="enableParticles" checked>
+                                <span class="setting-description">Show animated wind particles</span>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <label for="enableSounds">Sound Effects</label>
+                                <input type="checkbox" id="enableSounds">
+                                <span class="setting-description">Enable wind and engine sounds</span>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <label for="autoSave">Auto-Save Settings</label>
+                                <input type="checkbox" id="autoSave" checked>
+                                <span class="setting-description">Automatically save model positions</span>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <label for="performanceMode">Performance Mode</label>
+                                <input type="checkbox" id="performanceMode">
+                                <span class="setting-description">Reduce graphics quality for better performance</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Data Management Section -->
+                <div class="setup-section">
+                    <h2>💾 Data Management</h2>
+                    <div class="setup-card">
+                        <div class="data-management">
+                            <div class="data-actions">
+                                <button id="exportSettings" class="setup-btn">Export Settings</button>
+                                <button id="importSettings" class="setup-btn">Import Settings</button>
+                                <button id="clearAllData" class="setup-btn danger-btn">Clear All Data</button>
+                            </div>
+                            <div class="data-info">
+                                <p>Export your settings and model configurations for backup or sharing</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Back Button -->
+                <div class="setup-actions">
+                    <button id="backToMainFromSettings" class="setup-btn back-btn">Back to Main</button>
+                </div>
+            </div>
+        </div>
         
         <!-- Aerodynamics Dashboard Sidebar (Right Side) -->
         <div id="aeroDashboard" class="aero-dashboard-sidebar">
@@ -116,7 +333,8 @@
             </div>
             <div class="dashboard-content">
                 <div class="dashboard-grid">
-                    <div class="dashboard-item drag-display">
+                    <!-- Primary Forces -->
+                    <div class="dashboard-item drag-display" title="Force opposing car motion through air. Lower is better for efficiency.">
                         <div class="dashboard-icon">🌬️</div>
                         <div class="dashboard-label">DRAG FORCE</div>
                         <div id="dragValue" class="dashboard-value">0.25</div>
@@ -126,7 +344,7 @@
                         </div>
                     </div>
                     
-                    <div class="dashboard-item lift-display">
+                    <div class="dashboard-item lift-display" title="Upward force on car. Negative values create downforce for better grip.">
                         <div class="dashboard-icon">⬆️</div>
                         <div class="dashboard-label">LIFT FORCE</div>
                         <div id="liftValue" class="dashboard-value">-0.12</div>
@@ -136,13 +354,118 @@
                         </div>
                     </div>
                     
-                    <div class="dashboard-item pressure-display">
+                    <div class="dashboard-item downforce-display" title="Downward force pushing car to ground. Higher values improve grip and handling.">
+                        <div class="dashboard-icon">⬇️</div>
+                        <div class="dashboard-label">DOWNFORCE</div>
+                        <div id="downforceValue" class="dashboard-value">0.12</div>
+                        <div class="dashboard-unit">N</div>
+                        <div class="dashboard-bar">
+                            <div id="downforceBar" class="dashboard-bar-fill downforce-bar"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Coefficients -->
+                    <div class="dashboard-item cd-display" title="Drag coefficient - measure of aerodynamic efficiency. Lower values (0.2-0.4) are better.">
+                        <div class="dashboard-icon">🎯</div>
+                        <div class="dashboard-label">DRAG COEFF (Cd)</div>
+                        <div id="cdValue" class="dashboard-value">0.30</div>
+                        <div class="dashboard-unit">-</div>
+                        <div class="dashboard-bar">
+                            <div id="cdBar" class="dashboard-bar-fill cd-bar"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-item cl-display" title="Lift coefficient - measure of lift generation. Negative values create downforce.">
+                        <div class="dashboard-icon">🎪</div>
+                        <div class="dashboard-label">LIFT COEFF (Cl)</div>
+                        <div id="clValue" class="dashboard-value">0.10</div>
+                        <div class="dashboard-unit">-</div>
+                        <div class="dashboard-bar">
+                            <div id="clBar" class="dashboard-bar-fill cl-bar"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pressure & Flow -->
+                    <div class="dashboard-item pressure-display" title="Air pressure around the car. Increases with wind speed and affects all forces.">
                         <div class="dashboard-icon">📊</div>
                         <div class="dashboard-label">PRESSURE</div>
                         <div id="pressureValue" class="dashboard-value">1.5</div>
                         <div class="dashboard-unit">kPa</div>
                         <div class="dashboard-bar">
                             <div id="pressureBar" class="dashboard-bar-fill pressure-bar"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-item dynamic-pressure-display" title="Pressure from moving air (½ρv²). Key factor in calculating aerodynamic forces.">
+                        <div class="dashboard-icon">💨</div>
+                        <div class="dashboard-label">DYNAMIC PRESSURE</div>
+                        <div id="dynamicPressureValue" class="dashboard-value">0.8</div>
+                        <div class="dashboard-unit">kPa</div>
+                        <div class="dashboard-bar">
+                            <div id="dynamicPressureBar" class="dashboard-bar-fill dynamic-pressure-bar"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-item stagnation-pressure-display" title="Total pressure when airflow is brought to rest. Sum of static and dynamic pressure.">
+                        <div class="dashboard-icon">🔴</div>
+                        <div class="dashboard-label">STAGNATION PRESSURE</div>
+                        <div id="stagnationPressureValue" class="dashboard-value">2.3</div>
+                        <div class="dashboard-unit">kPa</div>
+                        <div class="dashboard-bar">
+                            <div id="stagnationPressureBar" class="dashboard-bar-fill stagnation-pressure-bar"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Velocity & Flow Properties -->
+                    <div class="dashboard-item velocity-display" title="Air velocity in meters per second. Higher speeds create more aerodynamic forces.">
+                        <div class="dashboard-icon">🏃</div>
+                        <div class="dashboard-label">VELOCITY</div>
+                        <div id="velocityValue" class="dashboard-value">22.4</div>
+                        <div class="dashboard-unit">m/s</div>
+                        <div class="dashboard-bar">
+                            <div id="velocityBar" class="dashboard-bar-fill velocity-bar"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-item reynolds-display" title="Reynolds number indicates flow type. Higher values (>1M) mean turbulent flow.">
+                        <div class="dashboard-icon">🌊</div>
+                        <div class="dashboard-label">REYNOLDS NUMBER</div>
+                        <div id="reynoldsValue" class="dashboard-value">6.1M</div>
+                        <div class="dashboard-unit">-</div>
+                        <div class="dashboard-bar">
+                            <div id="reynoldsBar" class="dashboard-bar-fill reynolds-bar"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Car Properties -->
+                    <div class="dashboard-item frontal-area-display" title="Cross-sectional area of car facing the wind. Larger area increases drag force.">
+                        <div class="dashboard-icon">🚗</div>
+                        <div class="dashboard-label">FRONTAL AREA</div>
+                        <div id="frontalAreaValue" class="dashboard-value">2.2</div>
+                        <div class="dashboard-unit">m²</div>
+                        <div class="dashboard-bar">
+                            <div id="frontalAreaBar" class="dashboard-bar-fill frontal-area-bar"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-item air-density-display" title="Density of air at sea level. Affects all aerodynamic calculations. Standard: 1.225 kg/m³">
+                        <div class="dashboard-icon">🌬️</div>
+                        <div class="dashboard-label">AIR DENSITY</div>
+                        <div id="airDensityValue" class="dashboard-value">1.225</div>
+                        <div class="dashboard-unit">kg/m³</div>
+                        <div class="dashboard-bar">
+                            <div id="airDensityBar" class="dashboard-bar-fill air-density-bar"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Performance -->
+                    <div class="dashboard-item efficiency-display" title="Overall aerodynamic efficiency rating. Based on drag, lift, and car angle. Higher is better.">
+                        <div class="dashboard-icon">⚡</div>
+                        <div class="dashboard-label">EFFICIENCY RATING</div>
+                        <div id="efficiencyValue" class="dashboard-value">85</div>
+                        <div class="dashboard-unit">%</div>
+                        <div class="dashboard-bar">
+                            <div id="efficiencyBar" class="dashboard-bar-fill efficiency-bar"></div>
                         </div>
                     </div>
                 </div>
@@ -152,6 +475,21 @@
     
     <!-- Three.js Library -->
     <script src="js/three.min.js"></script>
+    
+    <!-- STL Loader -->
+    <script src="js/STLLoader.js"></script>
+    
+    <!-- Car Settings Storage -->
+    <script src="js/carSettings.js"></script>
+    
+    <!-- Menu System -->
+    <script src="js/menuSystem.js"></script>
+    
+    <!-- STL Setup Manager -->
+    <script src="js/stlSetupManager.js"></script>
+    
+    <!-- Model Manager -->
+    <script src="js/modelManager.js"></script>
     
     <!-- Application Scripts -->
     <script src="js/aerodynamics.js"></script>
