@@ -12,6 +12,10 @@ class WindParticleSystem {
         this.particles = [];
         this.particleSystem = null;
         
+        // NEW: Create velocity field calculator and color mapper
+        this.velocityCalculator = new VelocityFieldCalculator();
+        this.colorMapper = new VelocityColorMapper();
+        
         // Create the particle system
         this.createParticles();
         
@@ -45,10 +49,19 @@ class WindParticleSystem {
             velocities[index + 1] = (Math.random() - 0.5) * 0.1; // y velocity (small random drift)
             velocities[index + 2] = (Math.random() - 0.5) * 0.1; // z velocity (small random drift)
             
-            // Set color (blue-green like wind)
-            colors[index] = 0.0; // red
-            colors[index + 1] = 0.8 + Math.random() * 0.2; // green
-            colors[index + 2] = 1.0; // blue
+            // NEW: Calculate velocity-based color instead of fixed blue-green
+            const particleVelocity = this.velocityCalculator.calculateVelocityAtPoint(
+                positions[index], 
+                positions[index + 1], 
+                positions[index + 2]
+            );
+            const velocityRatio = this.velocityCalculator.getVelocityRatio(particleVelocity);
+            const color = this.colorMapper.getColorFromVelocityRatio(velocityRatio);
+            
+            // Set color based on velocity (green → yellow → red)
+            colors[index] = color.r;     // red component
+            colors[index + 1] = color.g; // green component
+            colors[index + 2] = color.b; // blue component
         }
         
         // Add data to geometry
@@ -95,8 +108,12 @@ class WindParticleSystem {
         // Update wind speed
         this.windSpeed = windSpeed * 0.1; // Convert MPH to reasonable speed
         
-        // Get particle positions
+        // NEW: Update velocity calculator with current wind speed
+        this.velocityCalculator.updateWindSpeed(windSpeed);
+        
+        // Get particle positions and colors
         const positions = this.particleSystem.geometry.attributes.position.array;
+        const colors = this.particleSystem.geometry.attributes.color.array;
         
         // Update each particle
         for (let i = 0; i < this.particleCount; i++) {
@@ -116,10 +133,25 @@ class WindParticleSystem {
             
             // Update velocity based on wind speed
             this.velocities[index] = this.windSpeed + Math.random() * 0.5;
+            
+            // NEW: Update particle color based on new position
+            const particleVelocity = this.velocityCalculator.calculateVelocityAtPoint(
+                positions[index], 
+                positions[index + 1], 
+                positions[index + 2]
+            );
+            const velocityRatio = this.velocityCalculator.getVelocityRatio(particleVelocity);
+            const color = this.colorMapper.getColorFromVelocityRatio(velocityRatio);
+            
+            // Update color array
+            colors[index] = color.r;     // red component
+            colors[index + 1] = color.g; // green component
+            colors[index + 2] = color.b; // blue component
         }
         
-        // Tell Three.js that positions have changed
+        // Tell Three.js that positions and colors have changed
         this.particleSystem.geometry.attributes.position.needsUpdate = true;
+        this.particleSystem.geometry.attributes.color.needsUpdate = true;
     }
     
     // Get the particle system for adding to scene
@@ -130,6 +162,117 @@ class WindParticleSystem {
     // Set wind speed
     setWindSpeed(speed) {
         this.windSpeed = speed * 0.1;
+        // NEW: Update velocity calculator with new wind speed
+        this.velocityCalculator.updateWindSpeed(speed);
+    }
+    
+    // NEW: Update car information for velocity calculations
+    updateCarInfo(carPosition, carAngle) {
+        // Default car size (can be made configurable later)
+        const carSize = { width: 1.8, height: 1.4, length: 4.0 };
+        
+        // Update velocity calculator with car info
+        this.velocityCalculator.updateCarInfo(carPosition, carSize, carAngle);
+    }
+    
+    // NEW: Update streamlines with current velocity field
+    updateStreamlines(streamlines) {
+        if (!streamlines) return;
+        
+        // Recreate streamline paths AND update colors
+        this.updateStreamlinePaths(streamlines);
+        this.updateStreamlineColors(streamlines);
+    }
+    
+    // NEW: Update streamline paths to follow airflow around car
+    updateStreamlinePaths(streamlines) {
+        if (!streamlines) return;
+        
+        streamlines.forEach((streamline, streamlineIndex) => {
+            // Create proper 3D grid of streamlines instead of diagonal pattern
+            const streamlinesPerRow = 3;
+            const streamlinesPerColumn = 7;
+            
+            const row = Math.floor(streamlineIndex / streamlinesPerRow);
+            const col = streamlineIndex % streamlinesPerRow;
+            
+            // Create even spacing in Y (vertical) and Z (depth) dimensions
+            const yPos = -2.0 + row * (4.0 / (streamlinesPerColumn - 1)); // -2.0 to +2.0
+            const zPos = -1.0 + col * (2.0 / (streamlinesPerRow - 1)); // -1.0 to +1.0
+            
+            // Create new path points that follow airflow around current car position
+            const pathPoints = [];
+            const pointCount = 100; // Points along the streamline
+            
+            for (let j = 0; j < pointCount; j++) {
+                const x = -10 + (j / pointCount) * 20; // From -10 to +10
+                let y = yPos;
+                let z = zPos;
+                
+                // Get car position and rotation
+                const carPos = this.velocityCalculator.carPosition;
+                const carAngle = this.velocityCalculator.carAngle;
+                
+                // Calculate distance from car with rotation
+                const cosAngle = Math.cos(carAngle * Math.PI / 180);
+                const sinAngle = Math.sin(carAngle * Math.PI / 180);
+                
+                // Rotate point relative to car to account for car rotation
+                const relativeX = x - carPos.x;
+                const relativeY = y - carPos.y;
+                const relativeZ = z - carPos.z;
+                
+                const rotatedX = relativeX * cosAngle - relativeZ * sinAngle;
+                const rotatedZ = relativeX * sinAngle + relativeZ * cosAngle;
+                
+                const distanceFromCar = Math.sqrt(rotatedX * rotatedX + relativeY * relativeY + rotatedZ * rotatedZ);
+                
+                // Apply deflection effects that work well in all viewing angles
+                if (distanceFromCar < 3) {
+                    const deflectionStrength = Math.max(0, 1 - distanceFromCar / 3);
+                    
+                    // Car blocking effect - deflect around the car
+                    if (Math.abs(rotatedX) < 2.0 && Math.abs(rotatedZ) < 1.0) {
+                        // Deflect upward (positive Y) and outward (Z direction)
+                        y += deflectionStrength * 1.5 * Math.sign(relativeY || 1);
+                        z += deflectionStrength * 1.5 * Math.sign(rotatedZ || 1);
+                    }
+                    
+                    // Wake effect behind car - turbulent flow
+                    if (rotatedX > 0 && Math.abs(rotatedZ) < 1.5) {
+                        y += deflectionStrength * 0.8 * Math.sin(rotatedX * 2) * Math.sign(relativeY || 1);
+                        z += deflectionStrength * 0.5 * Math.cos(rotatedX * 2) * Math.sign(rotatedZ || 1);
+                    }
+                    
+                    // Stagnation effect in front of car - air pushes outward
+                    if (rotatedX < 0 && Math.abs(rotatedZ) < 1.0) {
+                        y += deflectionStrength * 1.0 * Math.sign(relativeY || 1);
+                        z += deflectionStrength * 1.2 * Math.sign(rotatedZ || 1);
+                    }
+                }
+                
+                // Add natural flow variation
+                y += 0.1 * Math.sin(x * 0.5) * Math.exp(-Math.abs(x) * 0.1);
+                z += 0.05 * Math.cos(x * 0.3) * Math.exp(-Math.abs(x) * 0.1);
+                
+                pathPoints.push(new THREE.Vector3(x, y, z));
+            }
+            
+            // Create new curve and update geometry
+            const curve = new THREE.CatmullRomCurve3(pathPoints);
+            const points = curve.getPoints(200);
+            
+            // Update position attributes
+            const positions = streamline.geometry.attributes.position.array;
+            for (let j = 0; j < points.length && j < positions.length / 3; j++) {
+                positions[j * 3] = points[j].x;
+                positions[j * 3 + 1] = points[j].y;
+                positions[j * 3 + 2] = points[j].z;
+            }
+            
+            // Tell Three.js that positions have changed
+            streamline.geometry.attributes.position.needsUpdate = true;
+        });
     }
     
     // Add turbulence effect around car
@@ -166,33 +309,113 @@ class WindParticleSystem {
     
     // Create streamlines (curved lines showing airflow)
     createStreamlines() {
-        console.log('Creating wind streamlines...');
+        console.log('Creating professional wind streamlines...');
         
         const streamlines = [];
-        const streamlineCount = 10;
+        const streamlineCount = 21; // More streamlines for better 3D visualization (3x7 grid)
         
         for (let i = 0; i < streamlineCount; i++) {
-            // Create curved path for streamline
-            const curve = new THREE.CatmullRomCurve3([
-                new THREE.Vector3(-10, -2 + i * 0.5, -2 + i * 0.4),
-                new THREE.Vector3(-5, -2 + i * 0.5, -2 + i * 0.4),
-                new THREE.Vector3(0, -1.5 + i * 0.6, -1.5 + i * 0.5),
-                new THREE.Vector3(5, -2 + i * 0.5, -2 + i * 0.4),
-                new THREE.Vector3(10, -2 + i * 0.5, -2 + i * 0.4)
-            ]);
+            // Create proper 3D grid of streamlines for all viewing angles
+            const streamlinesPerRow = 3;
+            const streamlinesPerColumn = 7;
             
-            // Create geometry from curve
-            const geometry = new THREE.TubeGeometry(curve, 50, 0.02, 8, false);
-            const material = new THREE.MeshBasicMaterial({ 
-                color: 0x0088ff,
+            const row = Math.floor(i / streamlinesPerRow);
+            const col = i % streamlinesPerRow;
+            
+            // Create even spacing in Y (vertical) and Z (depth) dimensions
+            const yPos = -2.0 + row * (4.0 / (streamlinesPerColumn - 1)); // -2.0 to +2.0
+            const zPos = -1.0 + col * (2.0 / (streamlinesPerRow - 1)); // -1.0 to +1.0
+            
+            // Create path points that simulate realistic airflow around a car
+            const pathPoints = [];
+            const pointCount = 100; // More points for smoother curves
+            
+            for (let j = 0; j < pointCount; j++) {
+                const x = -10 + (j / pointCount) * 20; // From -10 to +10
+                let y = yPos;
+                let z = zPos;
+                
+                // Simulate airflow effects around car position (assumed at origin)
+                const distanceFromCar = Math.sqrt(x * x + y * y + z * z);
+                
+                // Apply realistic airflow deflection around the car
+                if (distanceFromCar < 2.5) {
+                    const deflectionStrength = Math.max(0, 1 - distanceFromCar / 2.5);
+                    
+                    // Car blocking effect - deflect around the car
+                    if (Math.abs(x) < 2.0 && Math.abs(z) < 1.0) {
+                        // Deflect upward and outward
+                        y += deflectionStrength * 1.0 * Math.sign(y || 1);
+                        z += deflectionStrength * 1.0 * Math.sign(z || 1);
+                    }
+                    
+                    // Wake effect behind car
+                    if (x > 0 && Math.abs(z) < 1.5) {
+                        y += deflectionStrength * 0.5 * Math.sin(x * 2) * Math.sign(y || 1);
+                        z += deflectionStrength * 0.3 * Math.cos(x * 2) * Math.sign(z || 1);
+                    }
+                    
+                    // Stagnation effect in front of car
+                    if (x < 0 && Math.abs(z) < 1.0) {
+                        y += deflectionStrength * 0.8 * Math.sign(y || 1);
+                        z += deflectionStrength * 0.8 * Math.sign(z || 1);
+                    }
+                }
+                
+                // Add natural flow variation (reduced for cleaner look)
+                y += 0.05 * Math.sin(x * 0.5) * Math.exp(-Math.abs(x) * 0.2);
+                z += 0.03 * Math.cos(x * 0.3) * Math.exp(-Math.abs(x) * 0.2);
+                
+                pathPoints.push(new THREE.Vector3(x, y, z));
+            }
+            
+            // Create curve from path points
+            const curve = new THREE.CatmullRomCurve3(pathPoints);
+            
+            // Create geometry with color-coded segments
+            const geometry = new THREE.BufferGeometry();
+            const points = curve.getPoints(200); // High resolution for smooth lines
+            const positions = new Float32Array(points.length * 3);
+            const colors = new Float32Array(points.length * 3);
+            
+            // Fill position and color arrays
+            for (let j = 0; j < points.length; j++) {
+                const point = points[j];
+                
+                // Set position
+                positions[j * 3] = point.x;
+                positions[j * 3 + 1] = point.y;
+                positions[j * 3 + 2] = point.z;
+                
+                // Calculate velocity at this point for color
+                const velocity = this.velocityCalculator.calculateVelocityAtPoint(point.x, point.y, point.z);
+                const velocityRatio = this.velocityCalculator.getVelocityRatio(velocity);
+                const color = this.colorMapper.getColorFromVelocityRatio(velocityRatio);
+                
+                // Set color
+                colors[j * 3] = color.r;
+                colors[j * 3 + 1] = color.g;
+                colors[j * 3 + 2] = color.b;
+            }
+            
+            // Set geometry attributes
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            
+            // Create material that uses vertex colors
+            const material = new THREE.LineBasicMaterial({
+                vertexColors: true,
                 transparent: true,
-                opacity: 0.3
+                opacity: 0.7,
+                linewidth: 2
             });
             
-            const streamline = new THREE.Mesh(geometry, material);
+            // Create line mesh
+            const streamline = new THREE.Line(geometry, material);
             streamlines.push(streamline);
         }
         
+        console.log('Professional streamlines created with velocity-based coloring!');
         return streamlines;
     }
     
@@ -203,6 +426,36 @@ class WindParticleSystem {
         streamlines.forEach((streamline, index) => {
             const time = currentTime * 0.001;
             streamline.material.opacity = 0.2 + 0.2 * Math.sin(time + index * 0.2);
+        });
+    }
+    
+    // NEW: Update streamline colors in real-time
+    updateStreamlineColors(streamlines) {
+        if (!streamlines) return;
+        
+        streamlines.forEach(streamline => {
+            const positions = streamline.geometry.attributes.position.array;
+            const colors = streamline.geometry.attributes.color.array;
+            
+            // Update colors for each point along the streamline
+            for (let i = 0; i < positions.length; i += 3) {
+                const x = positions[i];
+                const y = positions[i + 1];
+                const z = positions[i + 2];
+                
+                // Calculate velocity at this point
+                const velocity = this.velocityCalculator.calculateVelocityAtPoint(x, y, z);
+                const velocityRatio = this.velocityCalculator.getVelocityRatio(velocity);
+                const color = this.colorMapper.getColorFromVelocityRatio(velocityRatio);
+                
+                // Update color
+                colors[i] = color.r;
+                colors[i + 1] = color.g;
+                colors[i + 2] = color.b;
+            }
+            
+            // Tell Three.js that colors have changed
+            streamline.geometry.attributes.color.needsUpdate = true;
         });
     }
     

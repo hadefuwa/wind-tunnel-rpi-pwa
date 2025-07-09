@@ -192,6 +192,16 @@ class WindTunnelApp {
         // Create wind particles system
         this.windParticles = new WindParticleSystem();
         this.scene.add(this.windParticles.getParticleSystem());
+        
+        // NEW: Create professional streamlines
+        this.streamlines = this.windParticles.createStreamlines();
+        
+        // Add streamlines to the scene
+        this.streamlines.forEach(streamline => {
+            this.scene.add(streamline);
+        });
+        
+        console.log('Wind effects created with', this.streamlines.length, 'streamlines');
     }
     
     // Create the car model
@@ -224,7 +234,16 @@ class WindTunnelApp {
         
         // Update wind particles
         if (this.windParticles) {
+            // NEW: Update car info in particle system before updating particles
+            if (this.carModel && this.carModel.carMesh) {
+                const carPosition = this.carModel.carMesh.position;
+                this.windParticles.updateCarInfo(carPosition, this.carAngle);
+            }
+            
             this.windParticles.update(currentTime, this.windSpeed);
+            
+            // NEW: Update streamlines with current velocity field
+            this.windParticles.updateStreamlines(this.streamlines);
         }
         
         // Update car rotation based on angle
@@ -258,12 +277,31 @@ class WindTunnelApp {
     // Set wind speed
     setWindSpeed(speed) {
         this.windSpeed = speed;
+        
+        // NEW: Update wind particles with new wind speed immediately
+        if (this.windParticles) {
+            this.windParticles.setWindSpeed(speed);
+            
+            // Force update streamlines immediately
+            this.windParticles.updateStreamlines(this.streamlines);
+        }
+        
         console.log('Wind speed set to:', speed, 'MPH');
     }
     
     // Set car angle
     setCarAngle(angle) {
         this.carAngle = angle;
+        
+        // NEW: Update wind particles with new car angle immediately
+        if (this.windParticles && this.carModel && this.carModel.carMesh) {
+            const carPosition = this.carModel.carMesh.position;
+            this.windParticles.updateCarInfo(carPosition, this.carAngle);
+            
+            // Force update streamlines immediately
+            this.windParticles.updateStreamlines(this.streamlines);
+        }
+        
         console.log('Car angle set to:', angle, '°');
     }
     
@@ -276,6 +314,15 @@ class WindTunnelApp {
             if (this.aerodynamicsCalculator) {
                 const carCharacteristics = this.carModel.getCarCharacteristics();
                 this.aerodynamicsCalculator.updateCarCharacteristics(carCharacteristics);
+            }
+            
+            // NEW: Update streamlines for new car type
+            if (this.windParticles && this.carModel.carMesh) {
+                const carPosition = this.carModel.carMesh.position;
+                this.windParticles.updateCarInfo(carPosition, this.carAngle);
+                
+                // Force update streamlines immediately
+                this.windParticles.updateStreamlines(this.streamlines);
             }
             
             console.log('Car type changed to:', carType);
