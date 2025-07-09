@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wind Tunnel Control</title>
+    <title>Wind Tunnel Simulator</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="css/styles.css">
@@ -19,12 +19,13 @@
         <div id="appMenuBar" class="app-menu-bar">
             <div class="menu-logo">
                 <span class="menu-icon">🌪️</span>
-                <span class="menu-title">Wind Tunnel</span>
+                <span class="menu-title">Wind Tunnel Simulator</span>
             </div>
             <div class="menu-nav">
-                <button id="menuMain" class="menu-btn active">Main</button>
-                <button id="menuSTLSetup" class="menu-btn">STL Setup</button>
-                <button id="menuSettings" class="menu-btn">Settings</button>
+                <button onclick="window.location.href='dashboard.html'" class="menu-btn">📊 Dashboard</button>
+                <button id="menuMain" class="menu-btn active">🏎️ Simulator</button>
+                <button id="menuSTLSetup" class="menu-btn">📁 STL Setup</button>
+                <button id="menuSettings" class="menu-btn">⚙️ Settings</button>
             </div>
         </div>
         
@@ -354,6 +355,64 @@
                     </div>
                 </div>
                 
+                <!-- V2 Graphics Engine Section -->
+                <div class="setup-section">
+                    <h2>🎨 Graphics Engine V2</h2>
+                    <div class="setup-card">
+                        <div class="settings-grid">
+                            <div class="setting-item">
+                                <label for="enableV2Engine">Enable V2 Graphics Engine</label>
+                                <input type="checkbox" id="enableV2Engine">
+                                <span class="setting-description">Enhanced streamline visualization with long flowing lines</span>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <label for="v2StreamlineCount">Streamline Count</label>
+                                <input type="range" id="v2StreamlineCount" min="20" max="60" value="40" class="rotation-slider-large">
+                                <span id="v2StreamlineCountValue" class="rotation-value-large">40</span>
+                                <span class="setting-description">Number of streamlines in V2 engine</span>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <label for="v2FlowIntensity">Flow Intensity</label>
+                                <input type="range" id="v2FlowIntensity" min="0.5" max="2.0" step="0.1" value="1.0" class="rotation-slider-large">
+                                <span id="v2FlowIntensityValue" class="rotation-value-large">1.0</span>
+                                <span class="setting-description">Strength of flow effects around car</span>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <label for="v2ShowUnderCar">Under-Car Flow</label>
+                                <input type="checkbox" id="v2ShowUnderCar" checked>
+                                <span class="setting-description">Show streamlines flowing under the car</span>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <label for="v2LongStreamlines">Long Streamlines</label>
+                                <input type="checkbox" id="v2LongStreamlines" checked>
+                                <span class="setting-description">Enable extra-long dramatic streamlines</span>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <label for="v2ColorIntensity">Color Intensity</label>
+                                <input type="range" id="v2ColorIntensity" min="0.5" max="1.5" step="0.1" value="1.0" class="rotation-slider-large">
+                                <span id="v2ColorIntensityValue" class="rotation-value-large">1.0</span>
+                                <span class="setting-description">Brightness of velocity-based colors</span>
+                            </div>
+                        </div>
+                        
+                        <div class="data-info" style="margin-top: 20px;">
+                            <p><strong>V2 Graphics Engine Features:</strong></p>
+                            <ul style="margin: 10px 0; padding-left: 20px;">
+                                <li>Long flowing streamlines with smooth color transitions</li>
+                                <li>Under-car airflow visualization</li>
+                                <li>Enhanced deflection effects around car</li>
+                                <li>Real-time color updates based on velocity</li>
+                                <li>Dramatic wake effects behind car</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Data Management Section -->
                 <div class="setup-section">
                     <h2>💾 Data Management</h2>
@@ -382,6 +441,7 @@
         <div id="aeroDashboard" class="aero-dashboard-sidebar">
             <div class="dashboard-header">
                 <h3>AERODYNAMICS DASHBOARD</h3>
+                <p style="font-size: 11px; margin: 5px 0; color: rgba(255,255,255,0.7);">📊 Click any parameter to view graph</p>
             </div>
             <div class="dashboard-content">
                 <div class="dashboard-grid">
@@ -515,6 +575,9 @@
     <!-- Three.js Library -->
     <script src="js/three.min.js"></script>
     
+    <!-- Chart.js Library for Graphing -->
+    <script src="js/chart.min.js"></script>
+    
     <!-- STL Loader -->
     <script src="js/STLLoader.js"></script>
     
@@ -534,9 +597,11 @@
     <script src="js/aerodynamics.js"></script>
     <script src="js/velocityField.js"></script>
     <script src="js/windParticles.js"></script>
+    <script src="js/windTunnelV2.js"></script>
     <script src="js/carModel.js"></script>
     <script src="js/windTunnel.js"></script>
     <script src="js/dataExport.js"></script>
+    <script src="js/graphingSystem.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html> 

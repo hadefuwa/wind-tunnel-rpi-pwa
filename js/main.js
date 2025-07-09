@@ -181,6 +181,9 @@ function setupControls() {
     
     // Camera view buttons
     setupCameraButtons();
+    
+    // NEW: V2 Graphics Engine controls
+    setupV2GraphicsControls();
 }
 
 // Set up STL file upload functionality
@@ -656,6 +659,110 @@ function setupCameraButtons() {
     });
 }
 
+// NEW: Set up V2 Graphics Engine controls
+function setupV2GraphicsControls() {
+    console.log('Setting up V2 Graphics Engine controls...');
+    
+    // Main V2 Engine toggle
+    const enableV2Engine = document.getElementById('enableV2Engine');
+    if (enableV2Engine) {
+        enableV2Engine.addEventListener('change', function() {
+            if (windTunnelApp) {
+                if (this.checked) {
+                    windTunnelApp.enableV2Graphics();
+                    showNotification('V2 Graphics Engine enabled!', 'success');
+                } else {
+                    windTunnelApp.disableV2Graphics();
+                    showNotification('V2 Graphics Engine disabled', 'info');
+                }
+            }
+        });
+    }
+    
+    // Streamline Count slider
+    const v2StreamlineCount = document.getElementById('v2StreamlineCount');
+    const v2StreamlineCountValue = document.getElementById('v2StreamlineCountValue');
+    if (v2StreamlineCount && v2StreamlineCountValue) {
+        v2StreamlineCount.addEventListener('input', function() {
+            const value = parseInt(this.value);
+            v2StreamlineCountValue.textContent = value;
+            
+            // Update V2 engine streamline count
+            if (windTunnelApp && windTunnelApp.windTunnelV2) {
+                windTunnelApp.windTunnelV2.streamlineCount = value;
+                // If enabled, recreate streamlines
+                if (windTunnelApp.windTunnelV2.isEnabled()) {
+                    windTunnelApp.windTunnelV2.createEnhancedStreamlines();
+                }
+            }
+        });
+    }
+    
+    // Flow Intensity slider
+    const v2FlowIntensity = document.getElementById('v2FlowIntensity');
+    const v2FlowIntensityValue = document.getElementById('v2FlowIntensityValue');
+    if (v2FlowIntensity && v2FlowIntensityValue) {
+        v2FlowIntensity.addEventListener('input', function() {
+            const value = parseFloat(this.value);
+            v2FlowIntensityValue.textContent = value;
+            
+            // Update V2 engine flow intensity
+            if (windTunnelApp && windTunnelApp.windTunnelV2) {
+                windTunnelApp.windTunnelV2.flowIntensity = value;
+            }
+        });
+    }
+    
+    // Under-Car Flow toggle
+    const v2ShowUnderCar = document.getElementById('v2ShowUnderCar');
+    if (v2ShowUnderCar) {
+        v2ShowUnderCar.addEventListener('change', function() {
+            if (windTunnelApp && windTunnelApp.windTunnelV2) {
+                windTunnelApp.windTunnelV2.showUnderCar = this.checked;
+                // If enabled, recreate streamlines
+                if (windTunnelApp.windTunnelV2.isEnabled()) {
+                    windTunnelApp.windTunnelV2.createEnhancedStreamlines();
+                }
+            }
+        });
+    }
+    
+    // Long Streamlines toggle
+    const v2LongStreamlines = document.getElementById('v2LongStreamlines');
+    if (v2LongStreamlines) {
+        v2LongStreamlines.addEventListener('change', function() {
+            if (windTunnelApp && windTunnelApp.windTunnelV2) {
+                windTunnelApp.windTunnelV2.showLongStreamlines = this.checked;
+                // If enabled, recreate streamlines
+                if (windTunnelApp.windTunnelV2.isEnabled()) {
+                    windTunnelApp.windTunnelV2.createEnhancedStreamlines();
+                }
+            }
+        });
+    }
+    
+    // Color Intensity slider
+    const v2ColorIntensity = document.getElementById('v2ColorIntensity');
+    const v2ColorIntensityValue = document.getElementById('v2ColorIntensityValue');
+    if (v2ColorIntensity && v2ColorIntensityValue) {
+        v2ColorIntensity.addEventListener('input', function() {
+            const value = parseFloat(this.value);
+            v2ColorIntensityValue.textContent = value;
+            
+            // Update V2 engine color intensity
+            if (windTunnelApp && windTunnelApp.windTunnelV2) {
+                windTunnelApp.windTunnelV2.colorIntensity = value;
+                // Update colors immediately
+                if (windTunnelApp.windTunnelV2.isEnabled()) {
+                    windTunnelApp.windTunnelV2.updateStreamlineColors();
+                }
+            }
+        });
+    }
+    
+    console.log('V2 Graphics Engine controls set up successfully');
+}
+
 // Set which camera view button is active
 function setActiveView(viewName, buttonElement) {
     // Remove active class from all buttons
@@ -965,6 +1072,11 @@ function updateDataDisplay(dragForce, liftForce, pressure, allForces) {
         
         // Performance
         updateParameter('efficiencyValue', 'efficiencyBar', allForces.efficiency || 0, '%', 0, 100);
+    }
+    
+    // NEW: Collect data for graphing system
+    if (aerodynamicsGraphingSystem && allForces) {
+        aerodynamicsGraphingSystem.addDataPoint(allForces);
     }
 }
 

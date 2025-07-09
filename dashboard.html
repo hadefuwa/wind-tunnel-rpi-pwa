@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wind Tunnel Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#001122">
+</head>
+<body>
+    <div id="app">
+        <!-- Loading Screen -->
+        <div id="loadingScreen" class="loading-screen">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Loading Wind Tunnel Dashboard...</div>
+        </div>
+
+        <!-- Main App Menu Bar -->
+        <div class="app-menu-bar">
+            <div class="menu-logo">
+                <span class="menu-icon">🌪️</span>
+                <span class="menu-title">Wind Tunnel Dashboard</span>
+            </div>
+            <nav class="menu-nav">
+                <button class="menu-btn active" onclick="window.location.href='dashboard.html'">📊 Dashboard</button>
+                <button class="menu-btn" onclick="window.location.href='index.html'">🏎️ Simulator</button>
+                <button class="menu-btn" onclick="showSettings()">⚙️ Settings</button>
+            </nav>
+        </div>
+
+        <!-- Dashboard Main Content -->
+        <div id="dashboardPage" class="app-page active">
+            <div class="dashboard-main-container">
+                <!-- Dashboard Header -->
+                <div class="dashboard-main-header">
+                    <h1>🌪️ Wind Tunnel Data Dashboard</h1>
+                    <p>Real-time aerodynamics data from wind tunnel testing</p>
+                    <div class="dashboard-status">
+                        <span class="status-indicator" id="connectionStatus">🔴 Disconnected</span>
+                        <span class="data-rate" id="dataRate">Data Rate: 0 Hz</span>
+                    </div>
+                </div>
+
+                <!-- Main Dashboard Grid -->
+                <div class="dashboard-main-grid">
+                    <!-- Primary Forces Section -->
+                    <div class="dashboard-section">
+                        <h2>Primary Forces</h2>
+                        <div class="dashboard-cards">
+                            <div class="dashboard-card drag-display" onclick="showGraph('dragForce')">
+                                <div class="card-header">
+                                    <span class="card-icon">⬅️</span>
+                                    <span class="card-title">DRAG FORCE</span>
+                                    <span class="graph-icon">📊</span>
+                                </div>
+                                <div class="card-value">
+                                    <span id="dragValue" class="value-number">0.25</span>
+                                    <span class="value-unit">N</span>
+                                </div>
+                                <div class="card-bar">
+                                    <div id="dragBar" class="card-bar-fill drag-bar"></div>
+                                </div>
+                                <div class="card-description">Force opposing motion</div>
+                            </div>
+
+                            <div class="dashboard-card lift-display" onclick="showGraph('liftForce')">
+                                <div class="card-header">
+                                    <span class="card-icon">⬆️</span>
+                                    <span class="card-title">LIFT FORCE</span>
+                                    <span class="graph-icon">📊</span>
+                                </div>
+                                <div class="card-value">
+                                    <span id="liftValue" class="value-number">-0.12</span>
+                                    <span class="value-unit">N</span>
+                                </div>
+                                <div class="card-bar">
+                                    <div id="liftBar" class="card-bar-fill lift-bar"></div>
+                                </div>
+                                <div class="card-description">Upward force (negative = downforce)</div>
+                            </div>
+
+                            <div class="dashboard-card downforce-display" onclick="showGraph('downforce')">
+                                <div class="card-header">
+                                    <span class="card-icon">⬇️</span>
+                                    <span class="card-title">DOWNFORCE</span>
+                                    <span class="graph-icon">📊</span>
+                                </div>
+                                <div class="card-value">
+                                    <span id="downforceValue" class="value-number">0.12</span>
+                                    <span class="value-unit">N</span>
+                                </div>
+                                <div class="card-bar">
+                                    <div id="downforceBar" class="card-bar-fill downforce-bar"></div>
+                                </div>
+                                <div class="card-description">Downward force for grip</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coefficients Section -->
+                    <div class="dashboard-section">
+                        <h2>Aerodynamic Coefficients</h2>
+                        <div class="dashboard-cards">
+                            <div class="dashboard-card cd-display" onclick="showGraph('dragCoeff')">
+                                <div class="card-header">
+                                    <span class="card-icon">📈</span>
+                                    <span class="card-title">DRAG COEFF (Cd)</span>
+                                    <span class="graph-icon">📊</span>
+                                </div>
+                                <div class="card-value">
+                                    <span id="cdValue" class="value-number">0.30</span>
+                                    <span class="value-unit">-</span>
+                                </div>
+                                <div class="card-bar">
+                                    <div id="cdBar" class="card-bar-fill cd-bar"></div>
+                                </div>
+                                <div class="card-description">Drag efficiency measure</div>
+                            </div>
+
+                            <div class="dashboard-card cl-display" onclick="showGraph('liftCoeff')">
+                                <div class="card-header">
+                                    <span class="card-icon">📊</span>
+                                    <span class="card-title">LIFT COEFF (Cl)</span>
+                                    <span class="graph-icon">📊</span>
+                                </div>
+                                <div class="card-value">
+                                    <span id="clValue" class="value-number">0.10</span>
+                                    <span class="value-unit">-</span>
+                                </div>
+                                <div class="card-bar">
+                                    <div id="clBar" class="card-bar-fill cl-bar"></div>
+                                </div>
+                                <div class="card-description">Lift generation measure</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pressure Section -->
+                    <div class="dashboard-section">
+                        <h2>Pressure Analysis</h2>
+                        <div class="dashboard-cards">
+                            <div class="dashboard-card pressure-display" onclick="showGraph('pressure')">
+                                <div class="card-header">
+                                    <span class="card-icon">🌬️</span>
+                                    <span class="card-title">PRESSURE</span>
+                                    <span class="graph-icon">📊</span>
+                                </div>
+                                <div class="card-value">
+                                    <span id="pressureValue" class="value-number">1.5</span>
+                                    <span class="value-unit">kPa</span>
+                                </div>
+                                <div class="card-bar">
+                                    <div id="pressureBar" class="card-bar-fill pressure-bar"></div>
+                                </div>
+                                <div class="card-description">Static air pressure</div>
+                            </div>
+
+                            <div class="dashboard-card dynamic-pressure-display" onclick="showGraph('dynamicPressure')">
+                                <div class="card-header">
+                                    <span class="card-icon">💨</span>
+                                    <span class="card-title">DYNAMIC PRESSURE</span>
+                                    <span class="graph-icon">📊</span>
+                                </div>
+                                <div class="card-value">
+                                    <span id="dynamicPressureValue" class="value-number">0.8</span>
+                                    <span class="value-unit">kPa</span>
+                                </div>
+                                <div class="card-bar">
+                                    <div id="dynamicPressureBar" class="card-bar-fill dynamic-pressure-bar"></div>
+                                </div>
+                                <div class="card-description">Moving air pressure (½ρv²)</div>
+                            </div>
+
+                            <div class="dashboard-card stagnation-pressure-display" onclick="showGraph('stagnationPressure')">
+                                <div class="card-header">
+                                    <span class="card-icon">🎯</span>
+                                    <span class="card-title">STAGNATION PRESSURE</span>
+                                    <span class="graph-icon">📊</span>
+                                </div>
+                                <div class="card-value">
+                                    <span id="stagnationPressureValue" class="value-number">2.3</span>
+                                    <span class="value-unit">kPa</span>
+                                </div>
+                                <div class="card-bar">
+                                    <div id="stagnationPressureBar" class="card-bar-fill stagnation-pressure-bar"></div>
+                                </div>
+                                <div class="card-description">Total pressure at stagnation point</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Flow Properties Section -->
+                    <div class="dashboard-section">
+                        <h2>Flow Properties</h2>
+                        <div class="dashboard-cards">
+                            <div class="dashboard-card velocity-display" onclick="showGraph('velocity')">
+                                <div class="card-header">
+                                    <span class="card-icon">🚀</span>
+                                    <span class="card-title">VELOCITY</span>
+                                    <span class="graph-icon">📊</span>
+                                </div>
+                                <div class="card-value">
+                                    <span id="velocityValue" class="value-number">22.4</span>
+                                    <span class="value-unit">m/s</span>
+                                </div>
+                                <div class="card-bar">
+                                    <div id="velocityBar" class="card-bar-fill velocity-bar"></div>
+                                </div>
+                                <div class="card-description">Air velocity</div>
+                            </div>
+
+                            <div class="dashboard-card reynolds-display" onclick="showGraph('reynolds')">
+                                <div class="card-header">
+                                    <span class="card-icon">🔄</span>
+                                    <span class="card-title">REYNOLDS NUMBER</span>
+                                    <span class="graph-icon">📊</span>
+                                </div>
+                                <div class="card-value">
+                                    <span id="reynoldsValue" class="value-number">6.1M</span>
+                                    <span class="value-unit">-</span>
+                                </div>
+                                <div class="card-bar">
+                                    <div id="reynoldsBar" class="card-bar-fill reynolds-bar"></div>
+                                </div>
+                                <div class="card-description">Flow type indicator</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Test Parameters Section -->
+                    <div class="dashboard-section">
+                        <h2>Test Parameters</h2>
+                        <div class="dashboard-cards">
+                            <div class="dashboard-card frontal-area-display" onclick="showGraph('frontalArea')">
+                                <div class="card-header">
+                                    <span class="card-icon">📐</span>
+                                    <span class="card-title">FRONTAL AREA</span>
+                                    <span class="graph-icon">📊</span>
+                                </div>
+                                <div class="card-value">
+                                    <span id="frontalAreaValue" class="value-number">2.2</span>
+                                    <span class="value-unit">m²</span>
+                                </div>
+                                <div class="card-bar">
+                                    <div id="frontalAreaBar" class="card-bar-fill frontal-area-bar"></div>
+                                </div>
+                                <div class="card-description">Cross-sectional area</div>
+                            </div>
+
+                            <div class="dashboard-card air-density-display" onclick="showGraph('airDensity')">
+                                <div class="card-header">
+                                    <span class="card-icon">🌡️</span>
+                                    <span class="card-title">AIR DENSITY</span>
+                                    <span class="graph-icon">📊</span>
+                                </div>
+                                <div class="card-value">
+                                    <span id="airDensityValue" class="value-number">1.225</span>
+                                    <span class="value-unit">kg/m³</span>
+                                </div>
+                                <div class="card-bar">
+                                    <div id="airDensityBar" class="card-bar-fill air-density-bar"></div>
+                                </div>
+                                <div class="card-description">Air density at sea level</div>
+                            </div>
+
+                            <div class="dashboard-card efficiency-display" onclick="showGraph('efficiency')">
+                                <div class="card-header">
+                                    <span class="card-icon">⚡</span>
+                                    <span class="card-title">EFFICIENCY</span>
+                                    <span class="graph-icon">📊</span>
+                                </div>
+                                <div class="card-value">
+                                    <span id="efficiencyValue" class="value-number">85</span>
+                                    <span class="value-unit">%</span>
+                                </div>
+                                <div class="card-bar">
+                                    <div id="efficiencyBar" class="card-bar-fill efficiency-bar"></div>
+                                </div>
+                                <div class="card-description">Aerodynamic efficiency</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Export Section -->
+                <div class="dashboard-export-section">
+                    <h2>Data Export</h2>
+                    <div class="export-buttons">
+                        <button id="recordTest" class="export-btn">📝 Record Test</button>
+                        <button id="exportCSV" class="export-btn">📊 Export CSV</button>
+                        <button id="exportJSON" class="export-btn">📋 Export JSON</button>
+                        <button id="clearData" class="export-btn clear-btn">🗑️ Clear Data</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Page -->
+        <div id="settingsPage" class="app-page">
+            <div class="setup-page-header">
+                <h1>Dashboard Settings</h1>
+                <p>Configure your wind tunnel dashboard</p>
+            </div>
+            
+            <div class="setup-page-content">
+                <!-- Data Collection Settings -->
+                <div class="setup-section">
+                    <h2>📊 Data Collection</h2>
+                    <div class="setup-card">
+                        <div class="settings-grid">
+                            <div class="setting-item">
+                                <label for="dataRate">Data Collection Rate</label>
+                                <input type="range" id="dataRate" min="1" max="10" value="2" class="rotation-slider-large">
+                                <span id="dataRateValue" class="rotation-value-large">2 Hz</span>
+                                <span class="setting-description">How often to collect data points</span>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <label for="maxDataPoints">Maximum Data Points</label>
+                                <input type="range" id="maxDataPoints" min="50" max="500" value="100" class="rotation-slider-large">
+                                <span id="maxDataPointsValue" class="rotation-value-large">100</span>
+                                <span class="setting-description">Maximum points to keep in memory</span>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <label for="autoExport">Auto Export</label>
+                                <input type="checkbox" id="autoExport">
+                                <span class="setting-description">Automatically export data when full</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SPI Communication Settings -->
+                <div class="setup-section">
+                    <h2>📡 SPI Communication</h2>
+                    <div class="setup-card">
+                        <div class="settings-grid">
+                            <div class="setting-item">
+                                <label for="spiEnabled">Enable SPI Data</label>
+                                <input type="checkbox" id="spiEnabled">
+                                <span class="setting-description">Enable real-time SPI data reception</span>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <label for="spiPort">SPI Port</label>
+                                <input type="text" id="spiPort" value="/dev/spidev0.0" class="setup-input">
+                                <span class="setting-description">SPI device port</span>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <label for="spiBaudRate">Baud Rate</label>
+                                <input type="range" id="spiBaudRate" min="1000" max="1000000" value="1000000" class="rotation-slider-large">
+                                <span id="spiBaudRateValue" class="rotation-value-large">1000000</span>
+                                <span class="setting-description">SPI communication speed</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Back Button -->
+                <div class="setup-actions">
+                    <button id="backToMainFromSettings" class="setup-btn back-btn">Back to Dashboard</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart.js Library for Graphing -->
+    <script src="js/chart.min.js"></script>
+    
+    <!-- Application Scripts -->
+    <script src="js/aerodynamics.js"></script>
+    <script src="js/dataExport.js"></script>
+    <script src="js/graphingSystem.js"></script>
+    <script src="js/dashboardMain.js"></script>
+</body>
+</html> 

@@ -1,8 +1,8 @@
 {
-  "name": "Wind Tunnel Controller",
+  "name": "Wind Tunnel Dashboard",
   "short_name": "WindTunnel",
-  "description": "3D Wind Tunnel Simulation for Raspberry Pi",
-  "start_url": "/",
+  "description": "Real-time Wind Tunnel Data Dashboard with 3D Simulation",
+  "start_url": "/home.html",
   "display": "fullscreen",
   "orientation": "landscape",
   "background_color": "#000000",
@@ -76,10 +76,10 @@
   ],
   "shortcuts": [
     {
-      "name": "Wind Tunnel",
-      "short_name": "Tunnel",
-      "description": "Open wind tunnel simulation",
-      "url": "/",
+      "name": "Wind Tunnel Dashboard",
+      "short_name": "Dashboard",
+      "description": "Open wind tunnel data dashboard",
+      "url": "/dashboard.html",
       "icons": [
         {
           "src": "assets/icons/icon-192.svg",

@@ -22,6 +22,9 @@ class WindTunnelApp {
         this.windParticles = null;
         this.aerodynamicsCalculator = null;
         
+        // NEW: V2 Graphics Engine
+        this.windTunnelV2 = null;
+        
         // Set up the 3D scene
         this.setupScene();
         this.setupCamera();
@@ -35,6 +38,9 @@ class WindTunnelApp {
         
         // Initialize physics calculator
         this.aerodynamicsCalculator = new AerodynamicsCalculator();
+        
+        // NEW: Initialize V2 Graphics Engine
+        this.windTunnelV2 = new WindTunnelV2Engine();
         
         // Initialize arrow key system
         this.initializeArrowKeySystem();
@@ -246,6 +252,13 @@ class WindTunnelApp {
             this.windParticles.updateStreamlines(this.streamlines);
         }
         
+        // NEW: Update V2 Graphics Engine
+        if (this.windTunnelV2 && this.windTunnelV2.isEnabled()) {
+            const carPosition = this.carModel && this.carModel.carMesh ? 
+                this.carModel.carMesh.position : { x: 0, y: 0, z: 0 };
+            this.windTunnelV2.update(this.windSpeed, carPosition, this.carAngle);
+        }
+        
         // Update car rotation based on angle
         if (this.carModel) {
             this.carModel.setAngle(this.carAngle);
@@ -326,6 +339,44 @@ class WindTunnelApp {
             }
             
             console.log('Car type changed to:', carType);
+        }
+    }
+    
+    // NEW: Enable V2 Graphics Engine
+    enableV2Graphics() {
+        if (this.windTunnelV2 && !this.windTunnelV2.isEnabled()) {
+            console.log('Enabling V2 Graphics Engine...');
+            
+            // IMPORTANT: Hide original streamlines when V2 is enabled
+            this.setStreamlinesVisible(false);
+            
+            this.windTunnelV2.enable(this.scene);
+        }
+    }
+    
+    // NEW: Disable V2 Graphics Engine
+    disableV2Graphics() {
+        if (this.windTunnelV2 && this.windTunnelV2.isEnabled()) {
+            console.log('Disabling V2 Graphics Engine...');
+            this.windTunnelV2.disable();
+            
+            // IMPORTANT: Show original streamlines when V2 is disabled
+            this.setStreamlinesVisible(true);
+        }
+    }
+    
+    // NEW: Check if V2 Graphics Engine is enabled
+    isV2GraphicsEnabled() {
+        return this.windTunnelV2 && this.windTunnelV2.isEnabled();
+    }
+    
+    // NEW: Control original streamlines visibility
+    setStreamlinesVisible(visible) {
+        if (this.streamlines) {
+            this.streamlines.forEach(streamline => {
+                streamline.visible = visible;
+            });
+            console.log('Original streamlines', visible ? 'shown' : 'hidden');
         }
     }
     
